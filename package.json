@@ -1,0 +1,50 @@
+{
+  "name": "playwright_framework_ui",
+  "version": "1.0.0",
+  "description": "Playwright Automation Framework with Hybrid Design Pattern for UI Automation Testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:functional": "playwright test --grep @functional",
+    "test:e2e": "playwright test --grep @booking",
+    "test:login": "playwright test --grep @login",
+    "test:booking": "playwright test --grep @booking",
+    "test:retrieve": "playwright test --grep @retrieve",
+    "test:negative": "playwright test --grep @negative",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:serial": "playwright test --workers=1",
+    "test:parallel": "playwright test --workers=4",
+    "build": "tsc",
+    "clean": "rm -rf dist reports/html-report reports/logs reports/test-output",
+    "lint": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SaravananS2000185758/Playwright_Framework_UI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/SaravananS2000185758/Playwright_Framework_UI/issues"
+  },
+  "homepage": "https://github.com/SaravananS2000185758/Playwright_Framework_UI#readme",
+  "dependencies": {
+    "@playwright/test": "^1.60.0",
+    "cross-env": "^10.1.0",
+    "csv-parser": "^3.2.1",
+    "dotenv": "^17.4.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3",
+    "winston": "^3.19.0",
+    "xlsx": "^0.18.5"
+  }
+}

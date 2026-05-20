@@ -1,0 +1,205 @@
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+schedules:
+  - cron: "0 2 * * *"
+    displayName: Daily test run
+    branches:
+      include:
+        - main
+    always: false
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  nodeVersion: '18.x'
+  npm_config_cache: $(Pipeline.Workspace)/.npm
+
+stages:
+  - stage: Install
+    displayName: Install Dependencies
+    jobs:
+      - job: InstallDependencies
+        displayName: Install Node modules and Playwright
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: Install Node.js
+
+          - task: Cache@2
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              path: $(npm_config_cache)
+              cacheHitVar: CACHE_RESTORED
+            displayName: Cache npm packages
+
+          - script: npm ci
+            displayName: Install npm dependencies
+
+          - script: npx playwright install --with-deps
+            displayName: Install Playwright browsers
+
+  - stage: Test
+    displayName: Run Tests
+    dependsOn: Install
+    jobs:
+      - job: ChromiumTests
+        displayName: Run Chromium Tests
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: Install Node.js
+
+          - script: npm ci
+            displayName: Install dependencies
+
+          - script: npx playwright install --with-deps chromium
+            displayName: Install Chromium
+
+          - script: npx playwright test --project=chromium
+            displayName: Run Chromium tests
+            env:
+              CI: true
+              BASE_URL: $(BaseUrl)
+
+          - task: PublishTestResults@2
+            displayName: Publish test results
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              mergeTestResults: true
+              failTaskOnFailedTests: true
+
+      - job: FirefoxTests
+        displayName: Run Firefox Tests
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: Install Node.js
+
+          - script: npm ci
+            displayName: Install dependencies
+
+          - script: npx playwright install --with-deps firefox
+            displayName: Install Firefox
+
+          - script: npx playwright test --project=firefox
+            displayName: Run Firefox tests
+            env:
+              CI: true
+              BASE_URL: $(BaseUrl)
+
+          - task: PublishTestResults@2
+            displayName: Publish test results
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              mergeTestResults: true
+              failTaskOnFailedTests: true
+
+      - job: WebkitTests
+        displayName: Run Webkit Tests
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: Install Node.js
+
+          - script: npm ci
+            displayName: Install dependencies
+
+          - script: npx playwright install --with-deps webkit
+            displayName: Install Webkit
+
+          - script: npx playwright test --project=webkit
+            displayName: Run Webkit tests
+            env:
+              CI: true
+              BASE_URL: $(BaseUrl)
+
+          - task: PublishTestResults@2
+            displayName: Publish test results
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              mergeTestResults: true
+              failTaskOnFailedTests: true
+
+  - stage: SmokeTests
+    displayName: Smoke Tests
+    dependsOn: Test
+    condition: succeeded()
+    jobs:
+      - job: SmokeTest
+        displayName: Run Smoke Tests
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: Install Node.js
+
+          - script: npm ci
+            displayName: Install dependencies
+
+          - script: npx playwright install --with-deps chromium
+            displayName: Install Chromium
+
+          - script: npx playwright test --grep @smoke
+            displayName: Run smoke tests
+            env:
+              CI: true
+              BASE_URL: $(BaseUrl)
+
+          - task: PublishTestResults@2
+            displayName: Publish smoke test results
+            condition: always()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/junit.xml'
+              mergeTestResults: true
+
+  - stage: PublishReports
+    displayName: Publish Reports
+    dependsOn: Test
+    condition: always()
+    jobs:
+      - job: PublishHTMLReport
+        displayName: Publish HTML Reports
+        steps:
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: '$(Build.SourcesDirectory)/reports/html-report'
+              artifactName: 'Playwright-HTML-Report'
+              publishLocation: 'Container'
+            displayName: Publish HTML report
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: '$(Build.SourcesDirectory)/reports/logs'
+              artifactName: 'Playwright-Logs'
+              publishLocation: 'Container'
+            displayName: Publish test logs
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: '$(Build.SourcesDirectory)/reports/test-results.json'
+              artifactName: 'Playwright-JSON-Report'
+              publishLocation: 'Container'
+            displayName: Publish JSON report
+            condition: always()
