@@ -2,8 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 
-// Load environment variables
-dotenv.config({ path: path.join(__dirname, 'test/data/config.properties') });
+// Load environment variables from .env file
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 /**
  * Playwright Configuration

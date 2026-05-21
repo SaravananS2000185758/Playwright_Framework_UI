@@ -26,6 +26,22 @@ This Playwright Automation Framework implements a **Hybrid Framework** design co
 ## Architecture Diagram
 
 ```
+┌──────────────────────────────────────────────────────┐
+│         CONFIGURATION LAYER                          │
+│              (.env file)                             │
+│  ┌────────────────────────────────────────────────┐  │
+│  │ BASE_URL, WORKERS, LOG_LEVEL, Credentials...  │  │
+│  └────────────────┬───────────────────────────────┘  │
+└───────────────────┼────────────────────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              PLAYWRIGHT CONFIG                                  │
+│          (playwright.config.ts)                                 │
+│  Loads environment variables from .env                          │
+└────────────────┬────────────────────────────────────────────────┘
+                 │
+                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                      TEST EXECUTION LAYER                       │
 │                    (test/specs/*.spec.ts)                       │
@@ -390,24 +406,66 @@ for (const data of testData) {
 
 ## Configuration & Customization
 
+### Environment Configuration (.env)
+The framework uses `.env` file for environment-specific configuration:
+
+**File Structure**:
+- `.env` - Your local configuration (git-ignored, NOT committed)
+- `.env.example` - Template for version control (committed)
+
+**Setup**:
+```bash
+# 1. Copy template
+cp .env.example .env
+
+# 2. Update with your values
+# BASE_URL=http://localhost:3000
+# WORKERS=4
+# LOG_LEVEL=info
+```
+
+**Example Configuration**:
+```properties
+# Application
+BASE_URL=http://localhost:3000
+
+# Browser
+HEADLESS=true
+WORKERS=4
+
+# Logging
+LOG_LEVEL=info
+
+# Test Data
+TEST_USERNAME=testuser@example.com
+TEST_PASSWORD=TestPassword123!
+```
+
 ### Playwright Config Options
 - Browser launch options
 - Viewport size
 - Timeouts
 - Screenshot/video capture
 - Reporter settings
+- Environment variable loading from `.env`
 
 ### Environment Variables
-- BASE_URL
-- WORKERS
-- LOG_LEVEL
-- Custom credentials
+All environment variables are loaded from `.env` file:
+- `BASE_URL` - Application URL to test
+- `WORKERS` - Number of parallel workers
+- `LOG_LEVEL` - Logging level (info, warn, error, debug)
+- `HEADLESS` - Run in headless mode
+- `RETRIES` - Retry failed tests
+- `ACTION_TIMEOUT` - Action timeout (milliseconds)
+- `NAVIGATION_TIMEOUT` - Navigation timeout (milliseconds)
+- Custom credentials and test data
 
 ### Test Execution Options
 - Serial/Parallel execution
 - Specific browser selection
 - Tag filtering
 - Debug mode
+- Environment-specific configurations
 
 ---
 

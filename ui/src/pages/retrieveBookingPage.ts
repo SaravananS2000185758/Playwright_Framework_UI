@@ -35,7 +35,13 @@ export class RetrieveBookingPage extends BasePage {
    * @param phone - Phone number
    */
   async enterPhoneNumber(phone: string): Promise<void> {
-    await this.actions.fill(RetrieveBookingLocators.PHONE_NUMBER_INPUT, phone, 'Entering phone number');
+    try {
+      await this.actions.fill(RetrieveBookingLocators.PHONE_NUMBER_INPUT,phone,'Entering phone number');
+      logger.info(`Entered phone number: ${phone}`);
+    } catch (error) {
+      logger.error(`Failed to enter phone number: ${phone}`);
+      throw error;
+    }
   }
 
   /**
@@ -64,6 +70,8 @@ export class RetrieveBookingPage extends BasePage {
    */
   async clickCancelBookingButton(): Promise<void> {
     await this.actions.click(RetrieveBookingLocators.CANCEL_BOOKING_BUTTON, 'Clicking cancel booking button');
+    await this.actions.getText(RetrieveBookingLocators.GUEST_NAME, 'Getting confirmation dialog text');
+    
   }
 
   /**

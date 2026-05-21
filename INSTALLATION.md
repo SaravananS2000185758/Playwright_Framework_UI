@@ -70,21 +70,11 @@ cp .env.example .env
 # - BASE_URL: Your application URL
 # - LOG_LEVEL: Logging level (info, warn, error, debug)
 # - WORKERS: Number of parallel workers
+# - TEST_USERNAME: Test user credentials
+# - TEST_PASSWORD: Test user password
 ```
 
-### Step 6: Configure Application URL
-
-Edit `test/data/config.properties`:
-
-```properties
-# Update BASE_URL to your application
-BASE_URL=http://localhost:3000
-
-# Or use your actual URL
-BASE_URL=http://your-app-domain.com
-```
-
-### Step 7: Verify Installation
+### Step 6: Verify Installation
 
 ```bash
 # Run TypeScript compilation check
@@ -127,7 +117,6 @@ Playwright_Framework_UI/
 │           └── dataUtils.ts        # ✅ Installed
 ├── test/
 │   ├── data/
-│   │   ├── config.properties       # ✅ Configured
 │   │   └── testData.csv            # ✅ Sample data
 │   └── specs/
 │       ├── login.spec.ts           # ✅ Created
@@ -211,7 +200,7 @@ rm -rf dist/
 
 **Solution:**
 ```bash
-# Update BASE_URL in config.properties to different port
+# Update BASE_URL in .env to different port
 BASE_URL=http://localhost:3001
 
 # Or check and kill process using the port
@@ -232,8 +221,8 @@ kill -9 <PID>
 - [ ] npm v8+ installed
 - [ ] Dependencies installed (`npm install`)
 - [ ] Playwright browsers installed (`npx playwright install`)
-- [ ] Environment configured (`.env` file)
-- [ ] Application URL configured in `config.properties`
+- [ ] Environment configured (`.env` file created from `.env.example`)
+- [ ] Application URL configured in `.env`
 - [ ] TypeScript compilation verified (`npx tsc --noEmit`)
 - [ ] Test data updated if needed
 - [ ] GitHub/Azure DevOps secrets configured (if using CI/CD)

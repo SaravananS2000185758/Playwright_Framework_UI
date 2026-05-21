@@ -69,7 +69,7 @@ console.log('\n═════════════════════�
 
 console.log('🎯 QUICK START STEPS:\n');
 console.log('1. Install dependencies: npm install');
-console.log('2. Configure BASE_URL in test/data/config.properties');
+console.log('2. Configure BASE_URL in .env file (copy from .env.example)');
 console.log('3. Update test data in test/data/testData.csv');
 console.log('4. Run tests: npm test');
 console.log('5. View report: npm run test:report\n');

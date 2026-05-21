@@ -48,7 +48,8 @@ Playwright_Framework_UI/
 │
 ├── test/
 │   ├── data/
-│   │   ├── config.properties           # Configuration file
+│   │   ├── .env                        # Environment configuration (NOT committed)
+│   │   ├── .env.example                # Environment template (committed)
 │   │   └── testData.csv                # Test data
 │   └── specs/
 │       ├── login.spec.ts               # Login test suite
@@ -286,7 +287,7 @@ Logs are generated in `reports/logs/` directory:
 - `error.log` - Error logs only
 
 ### Log Levels
-Configure in `test/data/config.properties`:
+Configure in `.env` file:
 ```
 LOG_LEVEL=info  # info, warn, error, debug
 ```
@@ -316,10 +317,78 @@ npx playwright show-report reports/html-report
 
 ## ⚙️ Configuration
 
+### Environment Setup (.env file)
+
+The framework uses a `.env` file for environment configuration. This is the recommended approach for managing environment-specific settings.
+
+#### Step 1: Create .env File
+Copy `.env.example` to `.env` in the project root:
+```bash
+# The .env file is NOT committed to version control (see .gitignore)
+cp .env.example .env
+```
+
+#### Step 2: Update .env with Your Configuration
+Edit `.env` and update values according to your environment:
+```properties
+# Application URLs
+BASE_URL=http://localhost:3000
+
+# Browser Configuration
+HEADLESS=true
+VIEWPORT_WIDTH=1920
+VIEWPORT_HEIGHT=1080
+
+# Execution Configuration
+WORKERS=4
+RETRIES=0
+
+# Timeouts (in milliseconds)
+ACTION_TIMEOUT=10000
+NAVIGATION_TIMEOUT=30000
+
+# Logging
+LOG_LEVEL=info
+
+# Test Data
+TEST_USERNAME=testuser@example.com
+TEST_PASSWORD=TestPassword123!
+TEST_DESTINATION=New York
+TEST_GUESTS=2
+TEST_ROOMS=1
+
+# Optional Integrations
+SLACK_WEBHOOK=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@gmail.com
+```
+
+#### Step 3: Environment-Specific Configurations (Optional)
+For different environments, create additional files:
+```bash
+.env              # Default/local configuration (NOT committed)
+.env.example      # Template for version control
+.env.staging      # Staging environment
+.env.prod         # Production environment
+```
+
+**Load specific environment:**
+```bash
+# Load staging environment
+npm run test:staging
+
+# Load production environment  
+npm run test:prod
+```
+
 ### Playwright Configuration (playwright.config.ts)
 
-Key settings:
+The Playwright configuration loads environment variables from `.env`:
 ```typescript
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+Key settings:
 - Viewport: 1920x1080
 - Workers: 4 (parallel execution)
 - Retries: 0
@@ -329,33 +398,28 @@ Key settings:
 - Trace: on-first-retry
 ```
 
-### Test Data Configuration (test/data/config.properties)
+### Environment Variables Usage
 
-```properties
-BASE_URL=http://localhost:3000
-HEADLESS=true
-VIEWPORT_WIDTH=1920
-VIEWPORT_HEIGHT=1080
-WORKERS=4
-RETRIES=0
-LOG_LEVEL=info
-TEST_USERNAME=testuser@example.com
-TEST_PASSWORD=TestPassword123!
-```
-
-### Environment Variables
+Override environment variables at runtime:
 ```bash
-# Set custom base URL
+# Set custom base URL (Windows PowerShell)
+$env:BASE_URL="http://your-app.com"
+npx playwright test
+
+# Set custom base URL (Windows CMD)
 set BASE_URL=http://your-app.com
 npx playwright test
 
 # Run with 8 workers
-set WORKERS=8
+$env:WORKERS="8"
 npx playwright test
 
 # Enable retries
-set RETRIES=2
+$env:RETRIES="2"
 npx playwright test
+
+# Combined
+$env:BASE_URL="http://staging.app.com"; $env:WORKERS="6"; npx playwright test
 ```
 
 ---
