@@ -13,6 +13,14 @@ export class Assertions {
 
   constructor(private page: Page) {}
 
+  private formatSuccess(message?: string): string {
+    return message?.trim() ? `✓ ${message}` : '✓';
+  }
+
+  private formatError(message?: string): string {
+    return message?.trim() ? `: ${message}` : '';
+  }
+
   /**
    * Validate text content (Hard Assertion)
    * @param locator - Playwright locator object or selector string
@@ -22,14 +30,22 @@ export class Assertions {
   async validateText(
     locator: Locator | string,
     expectedText: string,
-    message: string = 'Validating text'
+    message?: string
   ): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
       await expect(element).toHaveText(expectedText);
-      logger.info(`✓ ${message}: "${expectedText}" found`);
+      logger.info(
+        message?.trim()
+          ? `✓ ${message}: "${expectedText}" found`
+          : `✓ "${expectedText}" found`
+      );
     } catch (error) {
-      logger.error(`✗ ${message}: Expected "${expectedText}" but assertion failed`);
+      logger.error(
+        message?.trim()
+          ? `✗ ${message}: Expected "${expectedText}" but assertion failed`
+          : `✗ Expected "${expectedText}" but assertion failed`
+      );
       throw error;
     }
   }
@@ -43,14 +59,22 @@ export class Assertions {
   async validateContainsText(
     locator: Locator | string,
     expectedText: string,
-    message: string = 'Validating text contains'
+    message?: string
   ): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
       await expect(element).toContainText(expectedText);
-      logger.info(`✓ ${message}: "${expectedText}" found in text`);
+      logger.info(
+        message?.trim()
+          ? `✓ ${message}: "${expectedText}" found in text`
+          : `✓ "${expectedText}" found in text`
+      );
     } catch (error) {
-      logger.error(`✗ ${message}: Expected text to contain "${expectedText}"`);
+      logger.error(
+        message?.trim()
+          ? `✗ ${message}: Expected text to contain "${expectedText}"`
+          : `✗ Expected text to contain "${expectedText}"`
+      );
       throw error;
     }
   }
@@ -66,14 +90,22 @@ export class Assertions {
     locator: Locator | string,
     attribute: string,
     expectedValue: string | RegExp,
-    message: string = 'Validating attribute'
+    message?: string
   ): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
       await expect(element).toHaveAttribute(attribute, expectedValue as any);
-      logger.info(`✓ ${message}: Attribute "${attribute}" = "${expectedValue}"`);
+      logger.info(
+        message?.trim()
+          ? `✓ ${message}: Attribute "${attribute}" = "${expectedValue}"`
+          : `✓ Attribute "${attribute}" = "${expectedValue}"`
+      );
     } catch (error) {
-      logger.error(`✗ ${message}: Attribute validation failed for "${attribute}"`);
+      logger.error(
+        message?.trim()
+          ? `✗ ${message}: Attribute validation failed for "${attribute}"`
+          : `✗ Attribute validation failed for "${attribute}"`
+      );
       throw error;
     }
   }
@@ -85,14 +117,18 @@ export class Assertions {
    */
   async validateVisible(
     locator: Locator | string,
-    message: string = 'Validating element visibility'
+    message?: string
   ): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
       await expect(element).toBeVisible();
-      logger.info(`✓ ${message}: Element is visible`);
+      logger.info(
+        message?.trim() ? `✓ ${message}: Element is visible` : '✓ Element is visible'
+      );
     } catch (error) {
-      logger.error(`✗ ${message}: Element is not visible`);
+      logger.error(
+        message?.trim() ? `✗ ${message}: Element is not visible` : '✗ Element is not visible'
+      );
       throw error;
     }
   }
@@ -104,14 +140,18 @@ export class Assertions {
    */
   async validateEnabled(
     locator: Locator | string,
-    message: string = 'Validating element enabled'
+    message?: string
   ): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
       await expect(element).toBeEnabled();
-      logger.info(`✓ ${message}: Element is enabled`);
+      logger.info(
+        message?.trim() ? `✓ ${message}: Element is enabled` : '✓ Element is enabled'
+      );
     } catch (error) {
-      logger.error(`✗ ${message}: Element is not enabled`);
+      logger.error(
+        message?.trim() ? `✗ ${message}: Element is not enabled` : '✗ Element is not enabled'
+      );
       throw error;
     }
   }
@@ -123,14 +163,18 @@ export class Assertions {
    */
   async validateHidden(
     locator: Locator | string,
-    message: string = 'Validating element hidden'
+    message?: string
   ): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
       await expect(element).toBeHidden();
-      logger.info(`✓ ${message}: Element is hidden`);
+      logger.info(
+        message?.trim() ? `✓ ${message}: Element is hidden` : '✓ Element is hidden'
+      );
     } catch (error) {
-      logger.error(`✗ ${message}: Element is visible`);
+      logger.error(
+        message?.trim() ? `✗ ${message}: Element is visible` : '✗ Element is visible'
+      );
       throw error;
     }
   }
@@ -142,14 +186,18 @@ export class Assertions {
    */
   async validateDisabled(
     locator: Locator | string,
-    message: string = 'Validating element disabled'
+    message?: string
   ): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
       await expect(element).toBeDisabled();
-      logger.info(`✓ ${message}: Element is disabled`);
+      logger.info(
+        message?.trim() ? `✓ ${message}: Element is disabled` : '✓ Element is disabled'
+      );
     } catch (error) {
-      logger.error(`✗ ${message}: Element is not disabled`);
+      logger.error(
+        message?.trim() ? `✗ ${message}: Element is not disabled` : '✗ Element is not disabled'
+      );
       throw error;
     }
   }
@@ -161,13 +209,19 @@ export class Assertions {
    */
   async validateTitle(
     expectedTitle: string | RegExp,
-    message: string = 'Validating page title'
+    message?: string
   ): Promise<void> {
     try {
       await expect(this.page).toHaveTitle(expectedTitle as any);
-      logger.info(`✓ ${message}: Title matches "${expectedTitle}"`);
+      logger.info(
+        message?.trim()
+          ? `✓ ${message}: Title matches "${expectedTitle}"`
+          : `✓ Title matches "${expectedTitle}"`
+      );
     } catch (error) {
-      logger.error(`✗ ${message}: Title validation failed`);
+      logger.error(
+        message?.trim() ? `✗ ${message}: Title validation failed` : '✗ Title validation failed'
+      );
       throw error;
     }
   }
@@ -179,13 +233,19 @@ export class Assertions {
    */
   async validateURL(
     expectedURL: string | RegExp,
-    message: string = 'Validating URL'
+    message?: string
   ): Promise<void> {
     try {
       await expect(this.page).toHaveURL(expectedURL as any);
-      logger.info(`✓ ${message}: URL is "${expectedURL}"`);
+      logger.info(
+        message?.trim()
+          ? `✓ ${message}: URL is "${expectedURL}"`
+          : `✓ URL is "${expectedURL}"`
+      );
     } catch (error) {
-      logger.error(`✗ ${message}: URL validation failed`);
+      logger.error(
+        message?.trim() ? `✗ ${message}: URL validation failed` : '✗ URL validation failed'
+      );
       throw error;
     }
   }
@@ -199,14 +259,22 @@ export class Assertions {
   async softValidateText(
     locator: Locator | string,
     expectedText: string,
-    message: string = 'Soft validating text'
+    message?: string
   ): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
       await expect(element).toHaveText(expectedText);
-      logger.info(`✓ ${message}: "${expectedText}" found`);
+      logger.info(
+        message?.trim()
+          ? `✓ ${message}: "${expectedText}" found`
+          : `✓ "${expectedText}" found`
+      );
     } catch (error) {
-      logger.warn(`⚠ ${message}: Expected "${expectedText}" but found different text`);
+      logger.warn(
+        message?.trim()
+          ? `⚠ ${message}: Expected "${expectedText}" but found different text`
+          : `⚠ Expected "${expectedText}" but found different text`
+      );
       this.softErrors.push(error as Error);
     }
   }
@@ -218,14 +286,18 @@ export class Assertions {
    */
   async softValidateVisible(
     locator: Locator | string,
-    message: string = 'Soft validating visibility'
+    message?: string
   ): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
       await expect(element).toBeVisible();
-      logger.info(`✓ ${message}: Element is visible`);
+      logger.info(
+        message?.trim() ? `✓ ${message}: Element is visible` : '✓ Element is visible'
+      );
     } catch (error) {
-      logger.warn(`⚠ ${message}: Element is not visible`);
+      logger.warn(
+        message?.trim() ? `⚠ ${message}: Element is not visible` : '⚠ Element is not visible'
+      );
       this.softErrors.push(error as Error);
     }
   }
@@ -241,14 +313,22 @@ export class Assertions {
     locator: Locator | string,
     attribute: string,
     expectedValue: string | RegExp,
-    message: string = 'Soft validating attribute'
+    message?: string
   ): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
       await expect(element).toHaveAttribute(attribute, expectedValue as any);
-      logger.info(`✓ ${message}: Attribute "${attribute}" = "${expectedValue}"`);
+      logger.info(
+        message?.trim()
+          ? `✓ ${message}: Attribute "${attribute}" = "${expectedValue}"`
+          : `✓ Attribute "${attribute}" = "${expectedValue}"`
+      );
     } catch (error) {
-      logger.warn(`⚠ ${message}: Attribute validation failed for "${attribute}"`);
+      logger.warn(
+        message?.trim()
+          ? `⚠ ${message}: Attribute validation failed for "${attribute}"`
+          : `⚠ Attribute validation failed for "${attribute}"`
+      );
       this.softErrors.push(error as Error);
     }
   }
@@ -286,12 +366,20 @@ export class Assertions {
    * @param expected - Expected value
    * @param message - Optional message for logging
    */
-  assertEqual(actual: any, expected: any, message: string = 'Validating equality'): void {
+  assertEqual(actual: any, expected: any, message?: string): void {
     try {
       expect(actual).toBe(expected);
-      logger.info(`✓ ${message}: ${actual} equals ${expected}`);
+      logger.info(
+        message?.trim()
+          ? `✓ ${message}: ${actual} equals ${expected}`
+          : `✓ ${actual} equals ${expected}`
+      );
     } catch (error) {
-      logger.error(`✗ ${message}: Expected ${expected} but got ${actual}`);
+      logger.error(
+        message?.trim()
+          ? `✗ ${message}: Expected ${expected} but got ${actual}`
+          : `✗ Expected ${expected} but got ${actual}`
+      );
       throw error;
     }
   }
@@ -302,12 +390,20 @@ export class Assertions {
    * @param expected - Expected value
    * @param message - Optional message for logging
    */
-  softAssertEqual(actual: any, expected: any, message: string = 'Soft validating equality'): void {
+  softAssertEqual(actual: any, expected: any, message?: string): void {
     try {
       expect(actual).toBe(expected);
-      logger.info(`✓ ${message}: ${actual} equals ${expected}`);
+      logger.info(
+        message?.trim()
+          ? `✓ ${message}: ${actual} equals ${expected}`
+          : `✓ ${actual} equals ${expected}`
+      );
     } catch (error) {
-      logger.warn(`⚠ ${message}: Expected ${expected} but got ${actual}`);
+      logger.warn(
+        message?.trim()
+          ? `⚠ ${message}: Expected ${expected} but got ${actual}`
+          : `⚠ Expected ${expected} but got ${actual}`
+      );
       this.softErrors.push(error as Error);
     }
   }

@@ -19,8 +19,15 @@ export class LoginPage extends BasePage {
    * @param username - Username to enter
    */
   async enterUsername(username: string): Promise<void> {
-    await this.actions.fill(LoginLocators.USERNAME_INPUT, username, 'Entering username');
-  }
+    try {
+      await this.actions.fill(LoginLocators.USERNAME_INPUT, username, 'Entering username');
+      logger.info(`Entered username: ${username}`);
+    } catch (error) {
+      logger.error(`Error entering username: ${error}`);
+      throw error;
+    }
+    }
+    
 
   /**
    * Enter password

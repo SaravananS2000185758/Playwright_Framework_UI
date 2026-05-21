@@ -38,6 +38,50 @@ export async function readCSVtoJSON(filePath: string): Promise<any[]> {
 }
 
 /**
+ * Write JSON array to CSV file
+ * @param filePath - Path to output CSV file
+ * @param data - Array of objects to convert to CSV rows
+ * @param headers - Optional list of CSV headers; defaults to keys from first object
+ * @returns Promise resolved when file is written
+ */
+export async function writeJSONToCSV(filePath: string, data: any[], headers?: string[]): Promise<void> {
+  try {
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new Error('CSV write requires a non-empty array of objects');
+    }
+
+    const csvHeaders = headers?.length ? headers : Array.from(
+      data.reduce((keys, row) => {
+        Object.keys(row).forEach((key) => keys.add(key));
+        return keys;
+      }, new Set<string>())
+    );
+
+    const escapeValue = (value: any) => {
+      const cell = value === undefined || value === null ? '' : String(value);
+      return `"${cell.replace(/"/g, '""')}"`;
+    };
+
+    const rows = data.map((row) =>
+      csvHeaders.map((header) => escapeValue(row[header])).join(',')
+    );
+
+    const csvContent = [csvHeaders.join(','), ...rows].join('\r\n');
+
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    await fs.promises.writeFile(filePath, csvContent, 'utf8');
+    logger.info(`✓ Successfully wrote CSV file: ${filePath} (${data.length} rows)`);
+  } catch (error) {
+    logger.error(`✗ Error writing CSV file: ${(error as Error).message}`);
+    throw error;
+  }
+}
+
+/**
  * Read Excel file and convert to JSON
  * @param filePath - Path to Excel file
  * @param sheetName - Sheet name (optional, defaults to first sheet)

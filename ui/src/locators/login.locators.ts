@@ -19,5 +19,5 @@ export class LoginLocators {
 
   // Other elements
   static readonly LOGIN_FORM = 'form[id="login-form"]';
-  static readonly REMEMBER_ME_CHECKBOX = 'input[type="checkbox"]';
+  static readonly REMEMBER_ME_CHECKBOX = "input[type='checkbox']";
 }
