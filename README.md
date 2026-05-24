@@ -24,32 +24,34 @@ This is a comprehensive **Playwright Automation Framework** built using **TypeSc
 Playwright_Framework_UI/
 │
 ├── ui/
-│   ├── src/
-│   │   ├── actions/
-│   │   │   └── actions.ts              # Action methods layer
-│   │   ├── assertions/
-│   │   │   └── assertions.ts           # Hard and soft assertions
-│   │   ├── fixtures/
-│   │   │   └── baseFixture.ts          # Custom test fixtures
-│   │   ├── locators/
-│   │   │   ├── login.locators.ts       # Login page locators
-│   │   │   ├── booking.locators.ts     # Booking page locators
-│   │   │   └── retrieveBooking.locators.ts
-│   │   ├── pages/
-│   │   │   ├── basePage.ts             # Base page object
-│   │   │   ├── loginPage.ts            # Login page object
-│   │   │   ├── bookingPage.ts          # Booking page object
-│   │   │   └── retrieveBookingPage.ts  # Retrieve booking page object
-│   │   ├── commonMethods/
-│   │   │   └── commonMethods.ts        # Reusable workflow methods
-│   │   └── utils/
-│   │       ├── logger.ts               # Winston logger setup
-│   │       └── dataUtils.ts            # CSV/Excel reading utilities
+│   └── src/
+│       ├── actions/
+│       │   └── actions.ts              # Action methods layer
+│       ├── assertions/
+│       │   └── assertions.ts           # Hard and soft assertions
+│       ├── fixtures/
+│       │   ├── baseFixture.ts          # Custom test fixtures with hooks
+│       │   └── fixtures.ts             # Data-driven test fixtures
+│       ├── locators/
+│       │   ├── login.locators.ts       # Login page locators
+│       │   ├── booking.locators.ts     # Booking page locators
+│       │   ├── retrieveBooking.locators.ts
+│       │   └── automationExcercise.locator.ts
+│       ├── pages/
+│       │   ├── basePage.ts             # Base page object
+│       │   ├── loginPage.ts            # Login page object
+│       │   ├── bookingPage.ts          # Booking page object
+│       │   ├── retrieveBookingPage.ts  # Retrieve booking page object
+│       │   └── automationExcercise.page.ts
+│       ├── commonMethods/
+│       │   └── commonMethods.ts        # Reusable workflow methods
+│       └── utils/
+│           ├── logger.ts               # Winston logger setup
+│           └── dataUtils.ts            # CSV/Excel reading utilities
 │
 ├── test/
 │   ├── data/
-│   │   ├── .env                        # Environment configuration (NOT committed)
-│   │   ├── .env.example                # Environment template (committed)
+│   │   ├── config.properties           # Environment configuration
 │   │   └── testData.csv                # Test data
 │   └── specs/
 │       ├── login.spec.ts               # Login test suite
@@ -58,14 +60,32 @@ Playwright_Framework_UI/
 │
 ├── reports/
 │   ├── html-report/                    # HTML reports
-│   ├── logs/                           # Log files
-│   └── test-output/                    # Test output artifacts
+│   ├── logs/                           # Log files (all.log, error.log)
+│   ├── junit.xml                       # JUnit report
+│   └── test-results.json               # JSON report
 │
+├── test-results/                       # Playwright test results & traces
+│
+├── .github/
+│   └── workflows/
+│       └── playwright.yml              # GitHub Actions CI/CD
+│
+├── .env                                # Environment configuration (NOT committed)
+├── .env.example                        # Environment template (committed)
+├── .gitignore                          # Git ignore rules
+├── .gitlab-ci.yml                      # GitLab CI/CD
+├── .prettierrc                         # Code formatting rules
+├── azure-pipelines.yml                 # Azure DevOps CI/CD
 ├── playwright.config.ts                # Playwright configuration
 ├── tsconfig.json                       # TypeScript configuration
 ├── test.sets.ts                        # Test suite configuration
 ├── package.json                        # Project dependencies
-└── README.md                           # This file
+├── verify-setup.js                     # Setup verification script
+├── README.md                           # This file
+├── ARCHITECTURE.md                     # Architecture documentation
+├── INSTALLATION.md                     # Installation guide
+├── QUICKSTART.md                       # Quick start guide
+└── GITLAB_CICD.md                      # GitLab CI/CD documentation
 ```
 
 ---
@@ -80,12 +100,13 @@ Playwright_Framework_UI/
 1. SPEC FILE (.spec.ts)
    └─→ Entry point of the test
    
-2. FIXTURES (baseFixture.ts)
+2. FIXTURES (baseFixture.ts / fixtures.ts)
    └─→ Custom fixtures provide:
        • LoginPage instance
        • BookingPage instance
        • RetrieveBookingPage instance
        • CommonMethods instance
+       • testData fixture (CSV data loading)
        • beforeEach/afterEach hooks
    
 3. PAGE OBJECTS (*.page.ts)
@@ -253,27 +274,26 @@ The framework includes pre-configured test suites:
 
 | Suite | Tags | Purpose |
 |-------|------|---------|
-| **smoke** | @smoke | Basic smoke tests |
+| **smoke** | @smoke | Basic smoke tests (E2E flow) |
 | **functional** | @functional | Core functionality tests |
 | **negative** | @negative | Error handling tests |
 | **e2e** | @booking @login @retrieve | End-to-end workflows |
-| **regression** | @booking @login @retrieve @functional | Regression testing |
-| **booking** | @booking | All booking tests |
 | **login** | @login | All login tests |
+| **booking** | @booking | All booking tests |
 | **retrieve** | @retrieve | All retrieve booking tests |
-| **all** | @booking @login @retrieve @smoke @functional @negative | Complete suite |
-
-### Print Available Test Sets
-```bash
-node -e "const ts = require('./test.sets.ts'); ts.printAllTestSets();"
-```
 
 ### Run Test Set
 ```bash
 # Run smoke tests
 npx playwright test --grep "@smoke"
 
-# Run E2E tests
+# Run functional tests
+npx playwright test --grep "@functional"
+
+# Run login tests
+npx playwright test --grep "@login"
+
+# Run booking tests
 npx playwright test --grep "@booking"
 ```
 
@@ -319,7 +339,7 @@ npx playwright show-report reports/html-report
 
 ### Environment Setup (.env file)
 
-The framework uses a `.env` file for environment configuration. This is the recommended approach for managing environment-specific settings.
+The framework uses a `.env` file in the project root for environment configuration. Additionally, `test/data/config.properties` is used by fixtures for runtime configuration.
 
 #### Step 1: Create .env File
 Copy `.env.example` to `.env` in the project root:
@@ -503,11 +523,18 @@ Helper functions:
 
 ### Example 1: Simple Login Test
 ```typescript
-import { test } from '../ui/src/fixtures/baseFixture';
+import { test } from '../../ui/src/fixtures/fixtures';
+import { getLogger } from '../../ui/src/utils/logger';
 
-test('Login with valid credentials', async ({ loginPage }) => {
-  await loginPage.login('testuser@example.com', 'Password123!');
-  await loginPage.verifySuccessMessageDisplayed();
+const logger = getLogger('LoginSpec');
+
+test('@login @smoke Verify login page loads', async ({ loginPage, commonMethods }) => {
+  logger.info('Test: Verify login page loads successfully');
+  
+  await commonMethods.navigateToLogin();
+  await loginPage.verifyLoginFormVisible();
+  
+  logger.info('✓ Test passed: Login page loaded successfully');
 });
 ```
 
@@ -539,14 +566,17 @@ test('Multiple assertions without failing', async ({ retrieveBookingPage, assert
 
 ### Example 4: Data-Driven Test
 ```typescript
-import { readCSVtoJSON } from '../ui/src/utils/dataUtils';
+import { test } from '../../ui/src/fixtures/fixtures';
 
-test('Data-driven login test', async ({ loginPage }) => {
-  const testData = await readCSVtoJSON('test/data/testData.csv');
+test('@login @functional Login with valid credentials', async ({ loginPage, testData, commonMethods }) => {
+  // testData fixture automatically loads CSV data
+  const loginData = testData[0];
   
-  for (const data of testData) {
-    await loginPage.login(data.username, data.password);
-  }
+  await loginPage.login(loginData.username, loginData.password);
+  await commonMethods.waitForPageLoad(30000, 'networkidle', 'Waiting for login navigation');
+  
+  const currentURL = await commonMethods.getCurrentURL();
+  expect(currentURL).not.toContain('/login');
 });
 ```
 
@@ -679,5 +709,5 @@ This framework is provided as-is for automation testing purposes.
 ---
 
 **Framework Version**: 1.0.0  
-**Last Updated**: May 2026  
-**Created by**: Senior QA Automation Architect
+**Last Updated**: January 2025  
+**Created by**: QA Automation Team

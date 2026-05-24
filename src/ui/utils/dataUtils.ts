@@ -6,22 +6,17 @@ import { getLogger } from './logger';
 
 const logger = getLogger('DataUtils');
 
-/**
- * Read CSV file and convert to JSON
- * @param filePath - Path to CSV file
- * @returns Promise with array of objects
- */
-export async function readCSVtoJSON(filePath: string): Promise<any[]> {
+export async function readCSVtoJSON(filePath: string): Promise<Record<string, string>[]> {
   return new Promise((resolve, reject) => {
     try {
       if (!fs.existsSync(filePath)) {
         throw new Error(`CSV file not found: ${filePath}`);
       }
 
-      const results: any[] = [];
+      const results: Record<string, string>[] = [];
       fs.createReadStream(filePath)
         .pipe(csv())
-        .on('data', (data: any) => results.push(data))
+        .on('data', (data: Record<string, string>) => results.push(data))
         .on('end', () => {
           logger.info(`✓ Successfully read CSV file: ${filePath} (${results.length} rows)`);
           resolve(results);
@@ -37,14 +32,7 @@ export async function readCSVtoJSON(filePath: string): Promise<any[]> {
   });
 }
 
-/**
- * Write JSON array to CSV file
- * @param filePath - Path to output CSV file
- * @param data - Array of objects to convert to CSV rows
- * @param headers - Optional list of CSV headers; defaults to keys from first object
- * @returns Promise resolved when file is written
- */
-export async function writeJSONToCSV(filePath: string, data: any[], headers?: string[]): Promise<void> {
+export async function writeJSONToCSV(filePath: string, data: Record<string, unknown>[], headers?: string[]): Promise<void> {
   try {
     if (!Array.isArray(data) || data.length === 0) {
       throw new Error('CSV write requires a non-empty array of objects');
@@ -57,7 +45,7 @@ export async function writeJSONToCSV(filePath: string, data: any[], headers?: st
       }, new Set<string>())
     );
 
-    const escapeValue = (value: any) => {
+    const escapeValue = (value: unknown) => {
       const cell = value === undefined || value === null ? '' : String(value);
       return `"${cell.replace(/"/g, '""')}"`;
     };
@@ -81,13 +69,7 @@ export async function writeJSONToCSV(filePath: string, data: any[], headers?: st
   }
 }
 
-/**
- * Read Excel file and convert to JSON
- * @param filePath - Path to Excel file
- * @param sheetName - Sheet name (optional, defaults to first sheet)
- * @returns Array of objects
- */
-export function readExcelData(filePath: string, sheetName?: string): any[] {
+export function readExcelData(filePath: string, sheetName?: string): Record<string, unknown>[] {
   try {
     if (!fs.existsSync(filePath)) {
       throw new Error(`Excel file not found: ${filePath}`);
@@ -100,7 +82,7 @@ export function readExcelData(filePath: string, sheetName?: string): any[] {
       throw new Error(`Sheet not found in Excel file`);
     }
 
-    const data = XLSX.utils.sheet_to_json(sheet);
+    const data = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet);
     logger.info(`✓ Successfully read Excel file: ${filePath} (${data.length} rows)`);
     return data;
   } catch (error) {
@@ -109,47 +91,27 @@ export function readExcelData(filePath: string, sheetName?: string): any[] {
   }
 }
 
-/**
- * Get timestamp in various formats
- * @param format - Format type: 'full', 'date', 'time', 'iso'
- * @returns Formatted timestamp string
- */
 export function getTimestamp(format: 'full' | 'date' | 'time' | 'iso' = 'full'): string {
   const now = new Date();
 
   switch (format) {
     case 'date':
-      return now.toISOString().split('T')[0]; // YYYY-MM-DD
+      return now.toISOString().split('T')[0];
     case 'time':
-      return now.toTimeString().split(' ')[0]; // HH:mm:ss
+      return now.toTimeString().split(' ')[0];
     case 'iso':
-      return now.toISOString(); // ISO format
+      return now.toISOString();
     case 'full':
     default:
-      return `${now.toISOString().split('T')[0]} ${now.toTimeString().split(' ')[0]}`; // YYYY-MM-DD HH:mm:ss
+      return `${now.toISOString().split('T')[0]} ${now.toTimeString().split(' ')[0]}`;
   }
 }
 
-/**
- * Generate unique ID
- * @returns Unique ID string
- */
 export function generateUniqueId(): string {
   return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-/**
- * Retry a promise-based function
- * @param fn - Function to retry
- * @param retries - Number of retries
- * @param delay - Delay between retries in milliseconds
- * @returns Result of function
- */
-export async function retry<T>(
-  fn: () => Promise<T>,
-  retries: number = 3,
-  delay: number = 1000
-): Promise<T> {
+export async function retry<T>(fn: () => Promise<T>, retries: number = 3, delay: number = 1000): Promise<T> {
   try {
     return await fn();
   } catch (error) {
@@ -162,19 +124,10 @@ export async function retry<T>(
   }
 }
 
-/**
- * Wait for a specific time
- * @param milliseconds - Time to wait in milliseconds
- */
 export async function wait(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-/**
- * Random delay between min and max
- * @param min - Minimum delay in milliseconds
- * @param max - Maximum delay in milliseconds
- */
 export async function randomDelay(min: number = 1000, max: number = 3000): Promise<void> {
   const delay = Math.floor(Math.random() * (max - min + 1)) + min;
   await wait(delay);

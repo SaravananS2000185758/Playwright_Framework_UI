@@ -1,4 +1,6 @@
-import { test as base, Page, expect } from '@playwright/test';
+import * as path from 'path';
+import { test as base, expect } from '@playwright/test';
+import { readCSVtoJSON } from '../utils/dataUtils';
 import { LoginPage } from '../pages/loginPage';
 import { BookingPage } from '../pages/bookingPage';
 import { RetrieveBookingPage } from '../pages/retrieveBookingPage';
@@ -6,80 +8,60 @@ import { CommonMethods } from '../commonMethods/commonMethods';
 import { getLogger } from '../utils/logger';
 import * as dotenv from 'dotenv';
 
-// Load environment variables
-dotenv.config({ path: 'test/data/config.properties' });
+dotenv.config();
 
 const logger = getLogger('Fixtures');
 
-/**
- * Define custom fixtures
- */
 type CustomFixtures = {
   loginPage: LoginPage;
   bookingPage: BookingPage;
   retrieveBookingPage: RetrieveBookingPage;
   commonMethods: CommonMethods;
+  testData: Record<string, string>[];
 };
 
-/**
- * Create extended test with custom fixtures
- */
 export const test = base.extend<CustomFixtures>({
-  // LoginPage fixture
+  testData: async ({}, use) => {
+    const csvPath = path.resolve(__dirname, '../../../test/data/testData.csv');
+    const data = await readCSVtoJSON(csvPath);
+    await use(data as Record<string, string>[]);
+  },
+
   loginPage: async ({ page }, use) => {
-    const loginPage = new LoginPage(page);
-    logger.info('✓ LoginPage fixture created');
-    await use(loginPage);
+    await use(new LoginPage(page));
     logger.info('✓ LoginPage fixture teardown');
   },
 
-  // BookingPage fixture
   bookingPage: async ({ page }, use) => {
-    const bookingPage = new BookingPage(page);
-    logger.info('✓ BookingPage fixture created');
-    await use(bookingPage);
+    await use(new BookingPage(page));
     logger.info('✓ BookingPage fixture teardown');
   },
 
-  // RetrieveBookingPage fixture
   retrieveBookingPage: async ({ page }, use) => {
-    const retrieveBookingPage = new RetrieveBookingPage(page);
-    logger.info('✓ RetrieveBookingPage fixture created');
-    await use(retrieveBookingPage);
+    await use(new RetrieveBookingPage(page));
     logger.info('✓ RetrieveBookingPage fixture teardown');
   },
 
-  // CommonMethods fixture
   commonMethods: async ({ page }, use) => {
-    const commonMethods = new CommonMethods(page);
-    logger.info('✓ CommonMethods fixture created');
-    await use(commonMethods);
+    await use(new CommonMethods(page));
     logger.info('✓ CommonMethods fixture teardown');
   },
 });
 
 export { expect };
 
-/**
- * Hook: Before each test
- */
 test.beforeEach(async ({ page, commonMethods }) => {
+  const baseURL = process.env.BASE_URL;
+  if (!baseURL) throw new Error('BASE_URL is not configured in .env');
+
   logger.info('================== TEST STARTED ==================');
-  const baseURL = process.env.BASE_URL || 'http://localhost:3000';
-  
-  // Navigate to application
+  logger.info(`✓ Navigating to base URL: ${baseURL}`);
   await page.goto(baseURL);
-  logger.info(`✓ Navigated to base URL: ${baseURL}`);
+  await commonMethods.waitForPageLoad(30000, 'load', 'Waiting for initial page load');
 });
 
-/**
- * Hook: After each test
- */
 test.afterEach(async ({ page }) => {
   logger.info('================== TEST ENDED ==================');
-  
-  // Clear cookies and storage
-  const context = page.context();
-  await context.clearCookies();
+  await page.context().clearCookies();
   logger.info('✓ Cookies cleared');
 });

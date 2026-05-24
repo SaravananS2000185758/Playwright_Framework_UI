@@ -3,10 +3,6 @@ import { getLogger } from '../utils/logger';
 
 const logger = getLogger('Actions');
 
-/**
- * Actions Layer - Contains all reusable action methods for UI interaction
- * This layer abstracts the Playwright API to provide consistent action methods
- */
 export class Actions {
   constructor(private page: Page) {}
 
@@ -18,11 +14,6 @@ export class Actions {
     return message?.trim() ? `: ${message}` : '';
   }
 
-  /**
-   * Click on an element
-   * @param locator - Playwright locator object or selector string
-   * @param message - Optional message for logging
-   */
   async click(locator: Locator | string, message?: string): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
@@ -34,29 +25,17 @@ export class Actions {
     }
   }
 
-  /**
-   * Fill text input with value
-   * @param locator - Playwright locator object or selector string
-   * @param value - Text value to fill
-   * @param message - Optional message for logging
-   */
   async fill(locator: Locator | string, value: string, message?: string): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
       await element.fill(value);
-      logger.info(message?.trim() ? `✓ ${message} with value: ${value}` : '✓');
+      logger.info(message?.trim() ? `${this.formatSuccess(message)} with value: ${value}` : '✓');
     } catch (error) {
       logger.error(`✗ Failed to fill element with value: ${value}${this.formatError(message)}`);
       throw error;
     }
   }
 
-  /**
-   * Select option from dropdown
-   * @param locator - Playwright locator object or selector string
-   * @param value - Value or label to select
-   * @param message - Optional message for logging
-   */
   async selectDropdown(locator: Locator | string, value: string, message?: string): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
@@ -68,12 +47,6 @@ export class Actions {
     }
   }
 
-  /**
-   * Get count of elements matching locator
-   * @param locator - Playwright locator object or selector string
-   * @param message - Optional message for logging
-   * @returns Count of elements
-   */
   async getCount(locator: Locator | string, message?: string): Promise<number> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
@@ -86,22 +59,10 @@ export class Actions {
     }
   }
 
-  /**
-   * Get length of element collection
-   * @param locator - Playwright locator object or selector string
-   * @param message - Optional message for logging
-   * @returns Length of collection
-   */
   async getLength(locator: Locator | string, message?: string): Promise<number> {
     return this.getCount(locator, message);
   }
 
-  /**
-   * Check if element is visible
-   * @param locator - Playwright locator object or selector string
-   * @param message - Optional message for logging
-   * @returns True if visible, false otherwise
-   */
   async isVisible(locator: Locator | string, message?: string): Promise<boolean> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
@@ -118,12 +79,6 @@ export class Actions {
     }
   }
 
-  /**
-   * Check if element is disabled
-   * @param locator - Playwright locator object or selector string
-   * @param message - Optional message for logging
-   * @returns True if disabled, false otherwise
-   */
   async isDisabled(locator: Locator | string, message?: string): Promise<boolean> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
@@ -140,13 +95,6 @@ export class Actions {
     }
   }
 
-  /**
-   * Get attribute value of element
-   * @param locator - Playwright locator object or selector string
-   * @param attribute - Attribute name
-   * @param message - Optional message for logging
-   * @returns Attribute value
-   */
   async getAttribute(locator: Locator | string, attribute: string, message?: string): Promise<string | null> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
@@ -159,12 +107,6 @@ export class Actions {
     }
   }
 
-  /**
-   * Get text content of element
-   * @param locator - Playwright locator object or selector string
-   * @param message - Optional message for logging
-   * @returns Text content
-   */
   async getText(locator: Locator | string, message?: string): Promise<string> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
@@ -177,11 +119,6 @@ export class Actions {
     }
   }
 
-  /**
-   * Hover over element
-   * @param locator - Playwright locator object or selector string
-   * @param message - Optional message for logging
-   */
   async hover(locator: Locator | string, message?: string): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
@@ -193,11 +130,6 @@ export class Actions {
     }
   }
 
-  /**
-   * Scroll to element
-   * @param locator - Playwright locator object or selector string
-   * @param message - Optional message for logging
-   */
   async scrollToElement(locator: Locator | string, message?: string): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
@@ -209,11 +141,6 @@ export class Actions {
     }
   }
 
-  /**
-   * Navigate to URL
-   * @param url - URL to navigate to
-   * @param message - Optional message for logging
-   */
   async navigateTo(url: string, message?: string): Promise<void> {
     try {
       await this.page.goto(url);
@@ -224,12 +151,16 @@ export class Actions {
     }
   }
 
-  /**
-   * Wait for element to be visible
-   * @param locator - Playwright locator object or selector string
-   * @param timeout - Timeout in milliseconds
-   * @param message - Optional message for logging
-   */
+  async waitForPageLoad(timeout: number = 30000, state: 'load' | 'domcontentloaded' | 'networkidle' = 'load', message?: string): Promise<void> {
+    try {
+      await this.page.waitForLoadState(state, { timeout });
+      logger.info(message?.trim() ? this.formatSuccess(message) : `✓ Page loaded in ${timeout}ms`);
+    } catch (error) {
+      logger.error(`✗ Page did not load within ${timeout}ms${this.formatError(message)}`);
+      throw error;
+    }
+  }
+
   async waitForElement(locator: Locator | string, timeout: number = 5000, message?: string): Promise<void> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
@@ -241,10 +172,10 @@ export class Actions {
     }
   }
 
-  /**
-   * Refresh page
-   * @param message - Optional message for logging
-   */
+  async waitForElementVisible(locator: Locator | string, timeout: number = 5000, message?: string): Promise<void> {
+    await this.waitForElement(locator, timeout, message);
+  }
+
   async refreshPage(message?: string): Promise<void> {
     try {
       await this.page.reload();
@@ -255,11 +186,6 @@ export class Actions {
     }
   }
 
-  /**
-   * Press key
-   * @param key - Key to press
-   * @param message - Optional message for logging
-   */
   async pressKey(key: string, message?: string): Promise<void> {
     try {
       await this.page.keyboard.press(key);
@@ -268,5 +194,19 @@ export class Actions {
       logger.error(`✗ Failed to press key: ${key}${this.formatError(message)}`);
       throw error;
     }
+  }
+
+  async wait(milliseconds: number, message?: string): Promise<void> {
+    try {
+      await this.page.waitForTimeout(milliseconds);
+      logger.info(message?.trim() ? `${this.formatSuccess(message)} (${milliseconds}ms)` : `✓ Delayed for ${milliseconds}ms`);
+    } catch (error) {
+      logger.error(`✗ Failed during wait of ${milliseconds}ms${this.formatError(message)}`);
+      throw error;
+    }
+  }
+
+  async sleep(milliseconds: number, message?: string): Promise<void> {
+    await this.wait(milliseconds, message);
   }
 }

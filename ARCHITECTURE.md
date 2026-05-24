@@ -52,12 +52,18 @@ This Playwright Automation Framework implements a **Hybrid Framework** design co
                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                      FIXTURES LAYER                             │
-│                (ui/src/fixtures/baseFixture.ts)                 │
+│          (ui/src/fixtures/baseFixture.ts & fixtures.ts)         │
 │                                                                  │
+│  baseFixture.ts:                                                │
 │  - Provides pre-configured page object instances                │
 │  - Handles setup/teardown (beforeEach/afterEach)                │
 │  - Manages browser and page context                             │
 │  - Initializes actions and assertions                           │
+│                                                                  │
+│  fixtures.ts:                                                   │
+│  - Extends baseFixture with testData fixture                    │
+│  - Loads CSV data automatically via readCSVtoJSON               │
+│  - Provides data-driven testing support                         │
 └────────────────┬────────────────────────────────────────────────┘
                  │
      ┌───────────┼───────────┐
@@ -214,19 +220,35 @@ export class LoginLocators {
 - Easy to update when UI changes
 - Avoid hardcoding selectors in tests
 
-### 5. **Fixtures** (`ui/src/fixtures/baseFixture.ts`)
+### 5. **Fixtures** (`ui/src/fixtures/baseFixture.ts` & `fixtures.ts`)
 **Purpose**: Pre-configure test environment
 
-**Provides**:
-- Page object instances
+**baseFixture.ts**:
+- Provides page object instances (LoginPage, BookingPage, RetrieveBookingPage)
+- CommonMethods instance
 - Setup and teardown hooks
 - Browser initialization
-- Page navigation
+- Page navigation to BASE_URL
+
+**fixtures.ts**:
+- Extends baseFixture functionality
+- Adds testData fixture for CSV data loading
+- Automatically reads test/data/testData.csv
+- Provides data-driven testing support
 
 **Usage**:
 ```typescript
+// Using baseFixture
+import { test } from '../ui/src/fixtures/baseFixture';
 test('...', async ({ loginPage, bookingPage }) => {
   // Page objects are ready to use
+});
+
+// Using fixtures with testData
+import { test } from '../ui/src/fixtures/fixtures';
+test('...', async ({ loginPage, testData }) => {
+  // testData is automatically loaded from CSV
+  const data = testData[0];
 });
 ```
 
@@ -363,8 +385,29 @@ test('test1', async () => {});
 1. Create locator file: `ui/src/locators/newPage.locators.ts`
 2. Create page class: `ui/src/pages/newPage.ts`
 3. Extend BasePage and use actions/assertions
-4. Add to fixture: `ui/src/fixtures/baseFixture.ts`
+4. Add to fixtures: `ui/src/fixtures/baseFixture.ts` and `fixtures.ts`
 5. Create tests: `test/specs/newPage.spec.ts`
+
+**Example**:
+```typescript
+// 1. ui/src/locators/newPage.locators.ts
+export class NewPageLocators {
+  static readonly ELEMENT = 'selector';
+}
+
+// 2. ui/src/pages/newPage.ts
+import { BasePage } from './basePage';
+export class NewPage extends BasePage {
+  async performAction() {
+    await this.actions.click(NewPageLocators.ELEMENT);
+  }
+}
+
+// 3. Add to fixtures
+newPage: async ({ page }, use) => {
+  await use(new NewPage(page));
+}
+```
 
 ### Adding Custom Actions
 
@@ -407,11 +450,12 @@ for (const data of testData) {
 ## Configuration & Customization
 
 ### Environment Configuration (.env)
-The framework uses `.env` file for environment-specific configuration:
+The framework uses `.env` file in the project root for environment-specific configuration. Additionally, `test/data/config.properties` is loaded by fixtures for runtime settings.
 
 **File Structure**:
-- `.env` - Your local configuration (git-ignored, NOT committed)
+- `.env` - Your local configuration in project root (git-ignored, NOT committed)
 - `.env.example` - Template for version control (committed)
+- `test/data/config.properties` - Runtime configuration loaded by fixtures
 
 **Setup**:
 ```bash
@@ -442,12 +486,15 @@ TEST_PASSWORD=TestPassword123!
 ```
 
 ### Playwright Config Options
-- Browser launch options
-- Viewport size
-- Timeouts
-- Screenshot/video capture
-- Reporter settings
+- Browser launch options (chromium, firefox, webkit)
+- Viewport size (1920x1080 default)
+- Timeouts (30s test timeout, 5s expect timeout)
+- Screenshot/video capture (on-failure)
+- Trace capture (retain-on-failure)
+- Reporter settings (HTML, JSON, JUnit, List)
 - Environment variable loading from `.env`
+- Parallel execution with configurable workers
+- Retry configuration
 
 ### Environment Variables
 All environment variables are loaded from `.env` file:
@@ -470,5 +517,5 @@ All environment variables are loaded from `.env` file:
 ---
 
 **Framework Version**: 1.0.0  
-**Last Updated**: May 2026  
+**Last Updated**: January 2025  
 **Documentation**: Complete
