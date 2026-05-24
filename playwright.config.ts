@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
+import { buildGrepPattern } from './src/ui/utils/executionConfig';
 
 dotenv.config({ path: path.join(__dirname, '.env') });
 
@@ -63,6 +64,8 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
   ],
+
+  grep: buildGrepPattern() ? new RegExp(buildGrepPattern()!) : undefined,
 
   forbidOnly: !!process.env.CI,
   updateSnapshots: process.env.UPDATE_SNAPSHOTS === 'true' ? 'all' : undefined,

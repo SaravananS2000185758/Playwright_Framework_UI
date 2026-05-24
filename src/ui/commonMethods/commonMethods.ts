@@ -1,6 +1,5 @@
 import { Page } from '@playwright/test';
 import { Actions } from '../actions/actions';
-import { LoginPage } from '../pages/loginPage';
 import { getLogger } from '../utils/logger';
 
 const logger = getLogger('CommonMethods');
@@ -26,7 +25,8 @@ export class CommonMethods {
   }
 
   async navigateToLogin(): Promise<void> {
-    await this.navigate('/login');
+    const baseURL = this.getBaseURL();
+    await this.actions.navigateTo(`${baseURL}/login`, 'Navigated to login page');
   }
 
   async navigateToBooking(): Promise<void> {
@@ -35,13 +35,6 @@ export class CommonMethods {
 
   async navigateToRetrieveBooking(): Promise<void> {
     await this.navigate('/retrieve-booking');
-  }
-
-  async loginFlow(username: string, password: string): Promise<LoginPage> {
-    const loginPage = new LoginPage(this.page);
-    await loginPage.login(username, password);
-    logger.info('✓ Login flow completed');
-    return loginPage;
   }
 
   async refreshPage(): Promise<void> {

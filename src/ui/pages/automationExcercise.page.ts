@@ -1,33 +1,32 @@
 import { Page } from '@playwright/test';
 import { Actions } from '../actions/actions';
 import { Assertions } from '../assertions/assertions';
-import { BookingLocators } from '../locators/automationExcercise.locator';
+import { CommonMethods } from '../commonMethods/commonMethods';
 import { getLogger } from '../utils/logger';
+import { AutomationExcerciseLocators } from '../locators/automationExcercise.locator';
 
-const logger = getLogger('AutomationExercisePage');
+const logger = getLogger('AutomationExcercisePage');
 
-export class BookingPage {
+export class AutomationExcercisePage {
   public page: Page;
   private actions: Actions;
   private assertions: Assertions;
-
+  private commonMethods: CommonMethods;
   constructor(page: Page) {
     this.page = page;
     this.actions = new Actions(page);
     this.assertions = new Assertions(page);
-    logger.info('✓ BookingPage initialized');
+    this.commonMethods = new CommonMethods(page);
+    logger.info('✓ AutomationExcercisePage initialized');
   }
 
-  async validateAutomationExcerciseHomePage(): Promise<void> {
-    await this.actions.waitForElementVisible(
-      BookingLocators.PAGE_TITLE,
-      5000,
-      'Waiting for page title to be visible'
-    );
-    await this.assertions.validateText(
-      BookingLocators.PAGE_TITLE,
-      'Website for automation practice',
-      'Validating page title text'
-    );
+  async validateDHRHomePage(): Promise<void> {
+
+    await this.actions.waitForPageLoad(3000, 'networkidle', 'Waiting for page to load');
+    await this.commonMethods.navigateToLogin();
+    await this.actions.fill(AutomationExcerciseLocators.emailAddress, 'SaravananS23@hexaware.com', 'Enter the username');
+    await this.actions.fill(AutomationExcerciseLocators.password, 'Br@v02026!@#', 'Enter the password');
+    await this.actions.click(AutomationExcerciseLocators.loginButton, 'Clicking on LoginIn button');
+    await this.actions.waitForElementVisible(AutomationExcerciseLocators.productsLabel, 5000, 'Waiting for products label to be visible');
   }
 }

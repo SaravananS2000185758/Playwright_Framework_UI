@@ -71,7 +71,6 @@ Playwright_Framework_UI/
 │       └── playwright.yml              # GitHub Actions CI/CD
 │
 ├── .env                                # Environment configuration (NOT committed)
-├── .env.example                        # Environment template (committed)
 ├── .gitignore                          # Git ignore rules
 ├── .gitlab-ci.yml                      # GitLab CI/CD
 ├── .prettierrc                         # Code formatting rules
@@ -342,11 +341,7 @@ npx playwright show-report reports/html-report
 The framework uses a `.env` file in the project root for environment configuration. Additionally, `test/data/config.properties` is used by fixtures for runtime configuration.
 
 #### Step 1: Create .env File
-Copy `.env.example` to `.env` in the project root:
-```bash
-# The .env file is NOT committed to version control (see .gitignore)
-cp .env.example .env
-```
+Create a `.env` file in the project root with the following configuration:
 
 #### Step 2: Update .env with Your Configuration
 Edit `.env` and update values according to your environment:
@@ -388,7 +383,6 @@ EMAIL_USER=your-email@gmail.com
 For different environments, create additional files:
 ```bash
 .env              # Default/local configuration (NOT committed)
-.env.example      # Template for version control
 .env.staging      # Staging environment
 .env.prod         # Production environment
 ```

@@ -1,9 +1,6 @@
-/**
- * Booking Page Locators
- * Centralized locator management for booking page elements
- */
-export class BookingLocators {
-  // Search/Filter fields
-  static readonly PAGE_TITLE = "img[alt='Website for automation practice']";
-  
+export class AutomationExcerciseLocators {
+  static readonly emailAddress = 'input[data-qa="login-email"]';
+  static readonly password= 'input[data-qa="login-password"]';
+  static readonly loginButton = 'button[data-qa="login-button"]';
+  static readonly productsLabel = 'a[href="/products"]:has-text("Products")';
 }
