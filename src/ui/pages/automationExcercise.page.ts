@@ -28,5 +28,6 @@ export class AutomationExcercisePage {
     await this.actions.fill(AutomationExcerciseLocators.password, 'Br@v02026!@#', 'Enter the password');
     await this.actions.click(AutomationExcerciseLocators.loginButton, 'Clicking on LoginIn button');
     await this.actions.waitForElementVisible(AutomationExcerciseLocators.productsLabel, 5000, 'Waiting for products label to be visible');
+    logger.warn('✓ Successfully validated the Automation Excercise Home Page - Testing Warn log');
   }
 }

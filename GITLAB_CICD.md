@@ -288,6 +288,7 @@ BASE_URL = http://your-app-url
 ```
 WORKERS = 4              # Parallel workers (default: 4)
 CI = true               # Automatically set by GitLab
+LOG_LEVEL = info         # error, warn, info, verbose, debug, silly
 ```
 
 ### Using Variables in Pipeline
@@ -299,7 +300,10 @@ script:
   - npx playwright test --project=chromium
 env:
   BASE_URL: "${BASE_URL:-http://localhost:3000}"
+  LOG_LEVEL: "${LOG_LEVEL:-info}"
 ```
+
+Set `LOG_LEVEL` in GitLab to one of: `error`, `warn`, `info`, `verbose`, `debug`, `silly`.
 
 ---
 

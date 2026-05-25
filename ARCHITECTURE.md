@@ -503,6 +503,7 @@ HEADLESS=true
 WORKERS=4
 
 # Logging
+# Supported values: error, warn, info, verbose, debug, silly
 LOG_LEVEL=info
 
 # Test Data
@@ -525,12 +526,20 @@ TEST_PASSWORD=TestPassword123!
 All environment variables are loaded from `.env` file:
 - `BASE_URL` - Application URL to test
 - `WORKERS` - Number of parallel workers
-- `LOG_LEVEL` - Logging level (info, warn, error, debug)
+- `LOG_LEVEL` - Logging level (`error`, `warn`, `info`, `verbose`, `debug`, `silly`)
 - `HEADLESS` - Run in headless mode
 - `RETRIES` - Retry failed tests
 - `ACTION_TIMEOUT` - Action timeout (milliseconds)
 - `NAVIGATION_TIMEOUT` - Navigation timeout (milliseconds)
 - Custom credentials and test data
+
+The logger methods available in this framework are:
+- `logger.error('Error message')`
+- `logger.warn('Warning message')`
+- `logger.info('Info message')`
+- `logger.verbose('Verbose message')`
+- `logger.debug('Debug message')`
+- `logger.silly('Silly message')`
 
 ### Test Execution Options
 - Serial/Parallel execution

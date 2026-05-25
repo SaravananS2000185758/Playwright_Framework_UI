@@ -298,10 +298,30 @@ Logs are generated in `reports/logs/` directory:
 - `error.log` - Error logs only
 
 ### Log Levels
-Configure in `.env` file:
+Configure in `.env` file using `LOG_LEVEL`.
+
+Supported values:
+- `error`
+- `warn`
+- `info`
+- `verbose`
+- `debug`
+- `silly`
+
+Example:
+```properties
+# Logging
+# Supported values: error, warn, info, verbose, debug, silly
+LOG_LEVEL=info
 ```
-LOG_LEVEL=info  # info, warn, error, debug
-```
+
+The logger supports the following methods:
+- `logger.error('Error message')`
+- `logger.warn('Warning message')`
+- `logger.info('Info message')`
+- `logger.verbose('Verbose message')`
+- `logger.debug('Debug message')`
+- `logger.silly('Silly message')`
 
 ### Report Types
 After test execution, reports are generated:
@@ -355,6 +375,7 @@ ACTION_TIMEOUT=10000
 NAVIGATION_TIMEOUT=30000
 
 # Logging
+# Supported values: error, warn, info, verbose, debug, silly
 LOG_LEVEL=info
 
 # Test Data
