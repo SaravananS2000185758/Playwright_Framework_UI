@@ -2,403 +2,495 @@
 
 ## Table of Contents
 1. [Overview](#overview)
-2. [Architecture Diagram](#architecture-diagram)
-3. [Core Components](#core-components)
-4. [Execution Flow](#execution-flow)
-5. [Design Patterns](#design-patterns)
-6. [Best Practices](#best-practices)
-7. [Extensibility](#extensibility)
+2. [Actual Folder Structure](#actual-folder-structure)
+3. [Architecture Diagram](#architecture-diagram)
+4. [Core Components](#core-components)
+5. [Execution Flow](#execution-flow)
+6. [Design Patterns](#design-patterns)
+7. [Configuration](#configuration)
+8. [Extensibility](#extensibility)
+9. [Best Practices](#best-practices)
 
 ---
 
 ## Overview
 
 This Playwright Automation Framework implements a **Hybrid Framework** design combining:
-- **Page Object Model (POM)** - For maintainability and reusability
+- **Page Object Model (POM)** - Maintainability and reusability
 - **Action-Driven Testing** - Centralized action methods
-- **Assertion Separation** - Dedicated assertion layer
-- **Data-Driven Approach** - CSV/Excel integration
-- **Custom Fixtures** - Pre-configured test setup
-- **Modular Architecture** - Separated concerns
+- **Assertion Separation** - Dedicated hard and soft assertion layer
+- **Data-Driven Approach** - JSON data integration via `testData.json`
+- **Custom Fixtures** - Pre-configured test setup with hooks
 - **Config-Driven Test Selection** - `test/execution.config.properties` controls which suites and tags are executed
+- **CircleCI Pipeline** - Ready-to-use CI/CD configuration
 
 ---
 
-## Configuration-Driven Execution
+## Actual Folder Structure
 
-The execution flow is driven by `test/execution.config.properties` and `src/ui/utils/executionConfig.ts`.
-
-`playwright.config.ts` loads a grep pattern from `buildGrepPattern()`, which reads the configuration file and converts enabled suites into Playwright tags.
-
-### Current configuration
-```properties
-feature.enabled = true
-feature.tagName = smoke
-
-e2e.enabled = false
-e2e.tagName = regression
 ```
-
-With these values, the default run executes only tests tagged with `@smoke`.
-
-### Current suite mapping
-- `test.sets.ts` exposes the logical `feature` and `e2e` suites.
-- `feature` maps to the `@smoke` tag by default.
-- `e2e` maps to the `@regression` tag by default.
+Playwright_Framework_UI/
+│
+├── .circleci/
+│   └── config.yml                          # CircleCI pipeline (3 workflows)
+│
+├── .github/
+│   └── workflows/
+│       └── playwright.yml                  # GitHub Actions pipeline
+│
+├── src/
+│   └── ui/
+│       ├── actions/
+│       │   └── actions.ts                  # All UI interaction methods
+│       ├── assertions/
+│       │   └── assertions.ts               # Hard + soft assertion methods
+│       ├── commonMethods/
+│       │   └── commonMethods.ts            # Navigation + utility methods
+│       ├── fixtures/
+│       │   └── fixtures.ts                 # Custom fixtures + beforeEach/afterEach
+│       ├── locators/
+│       │   └── automationExcercise.locator.ts  # Static locators for AE site
+│       ├── pages/
+│       │   └── automationExcercise.page.ts     # Page object for AE site
+│       └── utils/
+│           ├── logger.ts                   # Winston logger (console + file)
+│           ├── dataUtils.ts                # JSON/CSV/Excel readers + helpers
+│           └── executionConfig.ts          # Reads config.properties → grep pattern
+│
+├── test/
+│   ├── data/
+│   │   └── testData.json                   # JSON test data (5 records)
+│   ├── specs/
+│   │   └── automationExcercise.spec.ts     # @smoke + @regression tests
+│   └── execution.config.properties         # Suite/tag execution control
+│
+├── reports/
+│   ├── html-report/                        # Playwright HTML report
+│   ├── logs/
+│   │   ├── all.log                         # All log entries
+│   │   └── error.log                       # Error-only logs
+│   ├── junit.xml                           # JUnit XML report
+│   └── test-results.json                   # JSON report
+│
+├── test-results/                           # Playwright traces + screenshots
+├── .env                                    # Local env config (NOT committed)
+├── playwright.config.ts                    # Playwright configuration
+├── test.sets.ts                            # Logical suite definitions
+├── tsconfig.json                           # TypeScript config
+├── package.json                            # Dependencies + npm scripts
+├── azure-pipelines.yml                     # Azure DevOps pipeline
+├── verify-setup.js                         # Setup verification script
+├── ARCHITECTURE.md                         # This file
+├── CIRCLECI.md                             # CircleCI documentation
+├── README.md                               # Main documentation
+├── INSTALLATION.md                         # Installation guide
+└── QUICKSTART.md                           # Quick start guide
+```
 
 ---
 
 ## Architecture Diagram
 
 ```
-┌──────────────────────────────────────────────────────┐
-│         CONFIGURATION LAYER                          │
-│              (.env file)                             │
-│  ┌────────────────────────────────────────────────┐  │
-│  │ BASE_URL, WORKERS, LOG_LEVEL, Credentials...  │  │
-│  └────────────────┬───────────────────────────────┘  │
-└───────────────────┼────────────────────────────────────┘
-                    │
-                    ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              PLAYWRIGHT CONFIG                                  │
-│          (playwright.config.ts)                                 │
-│  Loads environment variables from .env                          │
-└────────────────┬────────────────────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      TEST EXECUTION LAYER                       │
-│                    (test/specs/*.spec.ts)                       │
-│                                                                  │
-│  test('...', async ({ loginPage, bookingPage, ... }) => {})    │
-└────────────────┬────────────────────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      FIXTURES LAYER                             │
-│          (ui/src/fixtures/baseFixture.ts & fixtures.ts)         │
-│                                                                  │
-│  baseFixture.ts:                                                │
-│  - Provides pre-configured page object instances                │
-│  - Handles setup/teardown (beforeEach/afterEach)                │
-│  - Manages browser and page context                             │
-│  - Initializes actions and assertions                           │
-│                                                                  │
-│  fixtures.ts:                                                   │
-│  - Extends baseFixture with testData fixture                    │
-│  - Loads CSV data automatically via readCSVtoJSON               │
-│  - Provides data-driven testing support                         │
-└────────────────┬────────────────────────────────────────────────┘
-                 │
-     ┌───────────┼───────────┐
-     ▼           ▼           ▼
-┌──────────┐ ┌──────────┐ ┌──────────────┐
-│LoginPage │ │BookingPg │ │RetrieveBook  │
-│ (Page    │ │ (Page    │ │ Pg (Page     │
-│ Object)  │ │ Object)  │ │ Object)      │
-└────┬─────┘ └────┬─────┘ └──────┬───────┘
-     │            │              │
-     └────────────┼──────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  PAGE OBJECT BASE CLASS                         │
-│                    (ui/src/pages/basePage.ts)                   │
-│                                                                  │
-│  - Constructor initializes Actions and Assertions               │
-│  - Provides access to Playwright Page instance                  │
-│  - Utility methods for common operations                        │
-└────────────┬─────────────────────────────────────────────────────┘
-             │
-      ┌──────┴──────┐
-      ▼             ▼
-  ┌────────────┐ ┌─────────────┐
-  │ ACTIONS    │ │ ASSERTIONS  │
-  │ LAYER      │ │ LAYER       │
-  ├────────────┤ ├─────────────┤
-  │ • click()  │ │ • validate()│
-  │ • fill()   │ │ • soft()    │
-  │ • getText()│ │ • assert()  │
-  │ • etc.     │ │ • etc.      │
-  └─────┬──────┘ └──────┬──────┘
-        │               │
-        └───────┬───────┘
-                ▼
-      ┌──────────────────────┐
-      │   LOCATORS LAYER     │
-      │  (*.locators.ts)     │
-      │                      │
-      │ • CSS Selectors      │
-      │ • XPath Expressions  │
-      │ • Static Variables   │
-      └──────────┬───────────┘
-                 │
-                 ▼
-      ┌──────────────────────┐
-      │  PLAYWRIGHT CORE     │
-      │   (Browser API)      │
-      │                      │
-      │ • Page instance      │
-      │ • Browser context    │
-      │ • Actions & checks   │
-      └──────────────────────┘
-                 │
-                 ▼
-      ┌──────────────────────┐
-      │   UTILITIES LAYER    │
-      │   & LOGGING          │
-      │                      │
-      │ • Logger (Winston)   │
-      │ • Data Utils         │
-      │ • Helpers            │
-      └──────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                        CONFIGURATION LAYER                           │
+│                                                                      │
+│   .env file                    execution.config.properties           │
+│   ├── BASE_URL                 ├── feature.enabled = false           │
+│   ├── HEADLESS=false           ├── feature.tagName = smoke           │
+│   ├── WORKERS=4                ├── e2e.enabled = true                │
+│   ├── LOG_LEVEL=info           └── e2e.tagName = regression          │
+│   ├── ACTION_TIMEOUT                        │                        │
+│   └── NAVIGATION_TIMEOUT                    ▼                        │
+│                                  executionConfig.ts                  │
+│                                  └── buildGrepPattern()              │
+│                                      → "@regression"                 │
+└──────────────────────────┬───────────────────────────────────────────┘
+                           │
+                           ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                     playwright.config.ts                             │
+│                                                                      │
+│  - Loads .env via dotenv                                             │
+│  - Sets headless, workers, viewport, timeouts                        │
+│  - Applies grep pattern from buildGrepPattern()                      │
+│  - Configures reporters: HTML, JSON, JUnit, List                     │
+│  - Projects: chromium, firefox, webkit                               │
+└──────────────────────────┬───────────────────────────────────────────┘
+                           │
+                           ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                  TEST SPEC LAYER                                      │
+│              test/specs/automationExcercise.spec.ts                  │
+│                                                                      │
+│  test.describe('Automation Excercise Page Tests', () => {            │
+│    test('@smoke ...', async ({ automationExcercisePage }) => {})     │
+│    test('@regression ...', async ({ automationExcercisePage }) => {})│
+│  });                                                                 │
+└──────────────────────────┬───────────────────────────────────────────┘
+                           │
+                           ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                     FIXTURES LAYER                                   │
+│                 src/ui/fixtures/fixtures.ts                          │
+│                                                                      │
+│  Provides:                                                           │
+│  ├── automationExcercisePage  → AutomationExcercisePage instance     │
+│  ├── commonMethods            → CommonMethods instance               │
+│  └── testData                 → JSON array from testData.json        │
+│                                                                      │
+│  beforeEach:                                                         │
+│  ├── Navigate to BASE_URL                                            │
+│  └── Wait for page load (networkidle, 30s)                           │
+│                                                                      │
+│  afterEach:                                                          │
+│  └── Clear cookies                                                   │
+└──────────────────────────┬───────────────────────────────────────────┘
+                           │
+                           ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                    PAGE OBJECT LAYER                                 │
+│            src/ui/pages/automationExcercise.page.ts                  │
+│                                                                      │
+│  AutomationExcercisePage                                             │
+│  ├── constructor(page)                                               │
+│  │   ├── new Actions(page)                                           │
+│  │   ├── new Assertions(page)                                        │
+│  │   └── new CommonMethods(page)                                     │
+│  └── validateAutomationExcerciseHomePage()                           │
+│      ├── waitForPageLoad (networkidle)                               │
+│      ├── navigateToLogin()                                           │
+│      ├── fill(emailAddress, value)                                   │
+│      ├── fill(password, value)                                       │
+│      ├── click(loginButton)                                          │
+│      └── waitForElementVisible(productsLabel)                        │
+└──────────┬───────────────────────────────────────────────────────────┘
+           │
+     ┌─────┴──────────────────┐
+     ▼                        ▼
+┌─────────────────┐   ┌──────────────────────────────────────────────┐
+│  ACTIONS LAYER  │   │              ASSERTIONS LAYER                │
+│  actions.ts     │   │              assertions.ts                   │
+│                 │   │                                              │
+│ click()         │   │  Hard:              Soft:                    │
+│ fill()          │   │  validateText()     softValidateText()       │
+│ selectDropdown()│   │  validateVisible()  softValidateVisible()    │
+│ getCount()      │   │  validateEnabled()  softValidateAttribute()  │
+│ getLength()     │   │  validateHidden()   softAssertEqual()        │
+│ isVisible()     │   │  validateDisabled() getSoftErrors()          │
+│ isDisabled()    │   │  validateAttribute()clearSoftErrors()        │
+│ getAttribute()  │   │  validateTitle()    throwSoftErrors()        │
+│ getText()       │   │  validateURL()                               │
+│ hover()         │   │  assertEqual()                               │
+│ scrollToElement()│  └──────────────────────────────────────────────┘
+│ navigateTo()    │
+│ waitForPageLoad()│
+│ waitForElement() │
+│ waitForElementVisible()
+│ refreshPage()   │
+│ pressKey()      │
+│ wait()          │
+│ sleep()         │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                       LOCATORS LAYER                                │
+│            src/ui/locators/automationExcercise.locator.ts           │
+│                                                                     │
+│  AutomationExcerciseLocators                                        │
+│  ├── emailAddress   = 'input[data-qa="login-email"]'                │
+│  ├── password       = 'input[data-qa="login-password"]'             │
+│  ├── loginButton    = 'button[data-qa="login-button"]'              │
+│  └── productsLabel  = 'a[href="/products"]:has-text("Products")'    │
+└────────┬────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                     PLAYWRIGHT CORE (Browser API)                   │
+│                                                                     │
+│  Page instance → Browser context → Chromium / Firefox / WebKit     │
+└────────┬────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    UTILITIES & LOGGING LAYER                        │
+│                                                                     │
+│  logger.ts                                                          │
+│  ├── Winston logger with context (getLogger('ModuleName'))          │
+│  ├── Console transport (colorized)                                  │
+│  ├── File transport → reports/logs/all.log (5MB, 5 files)           │
+│  └── Error transport → reports/logs/error.log (5MB, 5 files)        │
+│                                                                     │
+│  dataUtils.ts                                                       │
+│  ├── readJSONData(filePath)                                         │
+│  ├── readExcelData(filePath, sheetName?)                            │
+│  ├── getTimestamp(format)                                           │
+│  ├── generateUniqueId()                                             │
+│  ├── retry(fn, retries, delay)                                      │
+│  ├── wait(milliseconds)                                             │
+│  └── randomDelay(min, max)                                          │
+│                                                                     │
+│  executionConfig.ts                                                 │
+│  ├── loadExecutionConfig() → reads execution.config.properties      │
+│  └── buildGrepPattern()   → returns "@smoke" | "@regression" | both │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Core Components
 
-### 1. **Actions Layer** (`ui/src/actions/actions.ts`)
-**Purpose**: Centralize UI interaction methods
+### 1. Actions Layer (`src/ui/actions/actions.ts`)
+Centralizes all UI interactions. Every method accepts `Locator | string` and an optional log message.
 
-**Key Methods**:
+| Method | Description |
+|--------|-------------|
+| `click(locator, message)` | Click an element |
+| `fill(locator, value, message)` | Fill an input field |
+| `selectDropdown(locator, value, message)` | Select dropdown option |
+| `getCount(locator, message)` | Get element count |
+| `getLength(locator, message)` | Alias for getCount |
+| `isVisible(locator, message)` | Returns boolean visibility |
+| `isDisabled(locator, message)` | Returns boolean disabled state |
+| `getAttribute(locator, attr, message)` | Get attribute value |
+| `getText(locator, message)` | Get text content |
+| `hover(locator, message)` | Hover over element |
+| `scrollToElement(locator, message)` | Scroll element into view |
+| `navigateTo(url, message)` | Navigate to URL |
+| `waitForPageLoad(timeout, state, message)` | Wait for load state |
+| `waitForElement(locator, timeout, message)` | Wait for element |
+| `waitForElementVisible(locator, timeout, message)` | Alias for waitForElement |
+| `refreshPage(message)` | Reload the page |
+| `pressKey(key, message)` | Press keyboard key |
+| `wait(ms, message)` | Wait for milliseconds |
+| `sleep(ms, message)` | Alias for wait |
+
+### 2. Assertions Layer (`src/ui/assertions/assertions.ts`)
+Provides hard and soft assertion strategies.
+
+**Hard Assertions** — test fails immediately on failure:
+
+| Method | Description |
+|--------|-------------|
+| `validateText(locator, text, message)` | Exact text match |
+| `validateContainsText(locator, text, message)` | Partial text match |
+| `validateVisible(locator, message)` | Element is visible |
+| `validateEnabled(locator, message)` | Element is enabled |
+| `validateHidden(locator, message)` | Element is hidden |
+| `validateDisabled(locator, message)` | Element is disabled |
+| `validateAttribute(locator, attr, value, message)` | Attribute value match |
+| `validateTitle(title, message)` | Page title match |
+| `validateURL(url, message)` | Page URL match |
+| `assertEqual(actual, expected, message)` | Value equality |
+
+**Soft Assertions** — errors collected, test continues:
+
+| Method | Description |
+|--------|-------------|
+| `softValidateText(locator, text, message)` | Collect text mismatch |
+| `softValidateVisible(locator, message)` | Collect visibility failure |
+| `softValidateAttribute(locator, attr, value, message)` | Collect attribute failure |
+| `softAssertEqual(actual, expected, message)` | Collect equality failure |
+| `getSoftErrors()` | Returns collected errors array |
+| `clearSoftErrors()` | Clears collected errors |
+| `throwSoftErrors()` | Throws all collected errors at once |
+
+### 3. Page Object (`src/ui/pages/automationExcercise.page.ts`)
+Encapsulates all interactions with the Automation Exercise website.
+
 ```typescript
-click(locator, message)          // Click element
-fill(locator, value, message)    // Fill input
-selectDropdown(locator, value)   // Select option
-getCount(locator)                // Get element count
-isVisible(locator)               // Check visibility
-getAttribute(locator, attr)      // Get attribute value
-getText(locator)                 // Get text content
-hover(locator)                   // Hover over element
-scrollToElement(locator)         // Scroll to element
-navigateTo(url)                  // Navigate to URL
-waitForElement(locator)          // Wait for element
-```
-
-**Benefits**:
-- Single source of truth for UI interactions
-- Consistent error handling and logging
-- Easy to maintain and update selectors
-- Reusable across all page objects
-
-### 2. **Assertions Layer** (`ui/src/assertions/assertions.ts`)
-**Purpose**: Provide both hard and soft assertion methods
-
-**Hard Assertions**:
-- `validateText()` - Validate exact text
-- `validateVisible()` - Check visibility
-- `validateEnabled()` - Check if enabled
-- `validateAttribute()` - Validate attribute value
-
-**Soft Assertions**:
-- `softValidateText()` - Collect validation error
-- `softValidateVisible()` - Collect visibility error
-- `softValidateAttribute()` - Collect attribute error
-- `throwSoftErrors()` - Throw all collected errors
-
-**Benefits**:
-- Multiple validations without test failure
-- Flexible validation strategy
-- Better error reporting
-
-### 3. **Page Objects** (`ui/src/pages/*.page.ts`)
-**Purpose**: Encapsulate page-specific logic
-
-**Structure**:
-```typescript
-export class LoginPage extends BasePage {
+export class AutomationExcercisePage {
   constructor(page: Page) {
-    super(page);
+    this.actions = new Actions(page);
+    this.assertions = new Assertions(page);
+    this.commonMethods = new CommonMethods(page);
   }
-  
-  async login(username: string, password: string): Promise<void> {
-    // Use actions and assertions
-  }
-  
-  async verifyPageLoaded(): Promise<void> {
-    // Custom verification
+
+  async validateAutomationExcerciseHomePage(): Promise<void> {
+    // waitForPageLoad → navigateToLogin → fill email → fill password
+    // → click login → waitForElementVisible(productsLabel)
   }
 }
 ```
 
-**Benefits**:
-- Separation of UI elements from test logic
-- Reusable page methods
-- Easy to update when UI changes
+### 4. Locators (`src/ui/locators/automationExcercise.locator.ts`)
+Static class with all selectors for the Automation Exercise site.
 
-### 4. **Locators** (`ui/src/locators/*.locators.ts`)
-**Purpose**: Centralize element selectors
-
-**Pattern**:
 ```typescript
-export class LoginLocators {
-  static readonly USERNAME_INPUT = 'input[placeholder="Username"]';
-  static readonly PASSWORD_INPUT = 'input[placeholder="Password"]';
-  static readonly LOGIN_BUTTON = 'button:has-text("Login")';
+export class AutomationExcerciseLocators {
+  static readonly emailAddress  = 'input[data-qa="login-email"]';
+  static readonly password      = 'input[data-qa="login-password"]';
+  static readonly loginButton   = 'button[data-qa="login-button"]';
+  static readonly productsLabel = 'a[href="/products"]:has-text("Products")';
 }
 ```
 
-**Benefits**:
-- Single location for selector management
-- Easy to update when UI changes
-- Avoid hardcoding selectors in tests
+### 5. Fixtures (`src/ui/fixtures/fixtures.ts`)
+Single fixture file providing all test dependencies.
 
-### 5. **Fixtures** (`ui/src/fixtures/baseFixture.ts` & `fixtures.ts`)
-**Purpose**: Pre-configure test environment
-
-**baseFixture.ts**:
-- Provides page object instances (LoginPage, BookingPage, RetrieveBookingPage)
-- CommonMethods instance
-- Setup and teardown hooks
-- Browser initialization
-- Page navigation to BASE_URL
-
-**fixtures.ts**:
-- Extends baseFixture functionality
-- Adds testData fixture for CSV data loading
-- Automatically reads test/data/testData.csv
-- Provides data-driven testing support
-
-**Usage**:
 ```typescript
-// Using baseFixture
-import { test } from '../ui/src/fixtures/baseFixture';
-test('...', async ({ loginPage, bookingPage }) => {
-  // Page objects are ready to use
-});
+// Available in every test:
+automationExcercisePage  // AutomationExcercisePage instance
+commonMethods            // CommonMethods instance
+testData                 // Record<string, string>[] from testData.json
 
-// Using fixtures with testData
-import { test } from '../ui/src/fixtures/fixtures';
-test('...', async ({ loginPage, testData }) => {
-  // testData is automatically loaded from CSV
-  const data = testData[0];
-});
+// Automatic hooks:
+beforeEach → page.goto(BASE_URL) + waitForPageLoad
+afterEach  → page.context().clearCookies()
+```
+
+### 6. CommonMethods (`src/ui/commonMethods/commonMethods.ts`)
+Reusable navigation and page utility methods.
+
+| Method | Description |
+|--------|-------------|
+| `navigateToLogin()` | Navigate to `BASE_URL/login` |
+| `navigateToBooking()` | Navigate to `BASE_URL/booking` |
+| `navigateToRetrieveBooking()` | Navigate to `BASE_URL/retrieve-booking` |
+| `refreshPage()` | Reload current page |
+| `goBack()` | Browser back navigation |
+| `getPageTitle()` | Returns current page title |
+| `getCurrentURL()` | Returns current URL |
+| `waitForPageLoad(timeout, state, message)` | Delegates to actions.waitForPageLoad |
+| `closeBrowser()` | Closes browser instance |
+| `getPage()` | Returns raw Playwright Page |
+
+### 7. Logger (`src/ui/utils/logger.ts`)
+Winston-based logger with context support.
+
+```typescript
+const logger = getLogger('MyModule');
+logger.error('...')    // → console + all.log + error.log
+logger.warn('...')     // → console + all.log
+logger.info('...')     // → console + all.log
+logger.verbose('...')  // → all.log (if LOG_LEVEL allows)
+logger.debug('...')    // → all.log (if LOG_LEVEL allows)
+logger.silly('...')    // → all.log (if LOG_LEVEL allows)
+```
+
+Format: `[YYYY-MM-DD HH:mm:ss] [LEVEL] message`
+
+### 8. Data Utilities (`src/ui/utils/dataUtils.ts`)
+
+| Function | Description |
+|----------|-------------|
+| `readJSONData(filePath)` | Parse JSON file into typed array |
+| `readExcelData(filePath, sheetName?)` | Parse Excel sheet into array |
+| `getTimestamp(format)` | Returns formatted timestamp string |
+| `generateUniqueId()` | Returns `timestamp_randomstring` |
+| `retry(fn, retries, delay)` | Retry async function on failure |
+| `wait(ms)` | Promise-based delay |
+| `randomDelay(min, max)` | Random delay between min and max ms |
+
+### 9. Execution Config (`src/ui/utils/executionConfig.ts`)
+Reads `test/execution.config.properties` and builds the Playwright grep pattern.
+
+```
+feature.enabled=false + e2e.enabled=true + e2e.tagName=regression
+→ buildGrepPattern() returns "@regression"
+→ playwright.config.ts applies: grep: /@regression/
 ```
 
 ---
 
 ## Execution Flow
 
-### Step-by-Step Execution
+### Step-by-Step
 
 ```
-1. Test Starts
-   ├─ beforeEach Hook
-   │  ├─ Initialize browser/context
-   │  ├─ Create page instance
-   │  ├─ Create page object instances
-   │  └─ Navigate to base URL
+1. npm run test / npx playwright test
    │
-2. Test Body Executes
-   ├─ Call page object methods
-   │  ├─ Use Actions layer
-   │  ├─ Use Assertions layer
-   │  └─ Log each step
+   ├─ playwright.config.ts loads .env
+   ├─ buildGrepPattern() reads execution.config.properties
+   └─ grep pattern applied → only matching tagged tests run
    │
-3. Test Ends
-   ├─ afterEach Hook
-   │  ├─ Clear cookies
-   │  ├─ Clear storage
-   │  └─ Cleanup resources
+2. beforeEach (fixtures.ts)
+   ├─ page.goto(BASE_URL)
+   └─ waitForPageLoad('load', 30000ms)
    │
-4. Reporting
-   ├─ Generate HTML report
-   ├─ Save logs
-   ├─ Save screenshots/videos
-   └─ Update test results
+3. Test body executes
+   ├─ automationExcercisePage.validateAutomationExcerciseHomePage()
+   │   ├─ actions.waitForPageLoad('networkidle', 3000ms)
+   │   ├─ commonMethods.navigateToLogin()
+   │   ├─ actions.fill(emailAddress, value)
+   │   ├─ actions.fill(password, value)
+   │   ├─ actions.click(loginButton)
+   │   └─ actions.waitForElementVisible(productsLabel, 5000ms)
+   └─ Each step logs via Winston logger
+   │
+4. afterEach (fixtures.ts)
+   └─ page.context().clearCookies()
+   │
+5. Reporting
+   ├─ HTML report → reports/html-report/index.html
+   ├─ JSON report → reports/test-results.json
+   ├─ JUnit XML  → reports/junit.xml
+   └─ Logs       → reports/logs/all.log + error.log
 ```
 
 ---
 
 ## Design Patterns
 
-### 1. **Page Object Model (POM)**
-- Each page is represented by a class
-- Page methods represent user actions
-- Locators are separated from test logic
+### Page Object Model (POM)
+Each page is a class. Page methods represent user workflows. Locators are in separate files.
 
-### 2. **Action Layer Pattern**
-- All UI interactions go through Actions class
-- Centralized error handling
-- Consistent logging
+### Action Layer Pattern
+All Playwright interactions go through `Actions` class — single source of truth with consistent error handling and logging.
 
-### 3. **Assertion Layer Pattern**
-- Hard and soft assertions available
-- Custom validation methods
-- Failure collection mechanism
+### Assertion Layer Pattern
+Hard and soft assertions separated from test logic. Soft assertions collect all failures before throwing.
 
-### 4. **Fixture Pattern**
-- Pre-configured test setup
-- Automatic cleanup
-- Dependency injection of page objects
+### Fixture Pattern
+Dependency injection via Playwright fixtures. Page objects, common methods, and test data are injected — never instantiated in tests.
 
-### 5. **Data-Driven Pattern**
-- CSV/Excel support
-- Parameterized tests
-- Reusable test data
+### Data-Driven Pattern
+Test data stored in `test/data/testData.json`. Loaded automatically via `testData` fixture.
+
+### Config-Driven Execution
+`execution.config.properties` controls which suite runs without modifying test code or CLI args.
 
 ---
 
-## Best Practices
+## Configuration
 
-### 1. **Locator Strategy**
+### .env Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BASE_URL` | - | Target application URL |
+| `HEADLESS` | `true` | `false` = headed (browser visible) |
+| `WORKERS` | `4` | Parallel workers |
+| `RETRIES` | `0` | Retry count on failure |
+| `LOG_LEVEL` | `info` | Winston log level |
+| `ACTION_TIMEOUT` | `10000` | Action timeout (ms) |
+| `NAVIGATION_TIMEOUT` | `30000` | Navigation timeout (ms) |
+| `VIEWPORT_WIDTH` | `1920` | Browser viewport width |
+| `VIEWPORT_HEIGHT` | `1080` | Browser viewport height |
+
+### execution.config.properties
+
+| Property | Current Value | Description |
+|----------|--------------|-------------|
+| `feature.enabled` | `false` | Enable/disable feature suite |
+| `feature.tagName` | `smoke` | Tag for feature suite |
+| `e2e.enabled` | `true` | Enable/disable e2e suite |
+| `e2e.tagName` | `regression` | Tag for e2e suite |
+
+### test.sets.ts
+
 ```typescript
-// ✅ GOOD - Stable selectors
-const SUBMIT_BUTTON = 'button[type="submit"]';
-const USERNAME_FIELD = 'input[name="username"]';
-
-// ❌ BAD - Fragile selectors
-const FIRST_BUTTON = 'div > button'; // Too generic
-const BURIED_TEXT = 'div > div > div > span'; // Too nested
-```
-
-### 2. **Action Method Usage**
-```typescript
-// ✅ GOOD - Use action methods
-await this.actions.fill(locator, 'value', 'Filling username');
-await this.actions.click(locator, 'Clicking login button');
-
-// ❌ BAD - Direct playwright API
-await page.locator(locator).fill('value');
-await page.locator(locator).click();
-```
-
-### 3. **Page Object Methods**
-```typescript
-// ✅ GOOD - Encapsulate workflow
-async login(username: string, password: string): Promise<void> {
-  await this.enterUsername(username);
-  await this.enterPassword(password);
-  await this.clickLoginButton();
-}
-
-// ❌ BAD - Actions mixed with test logic
-test('Login', async ({ page }) => {
-  await page.fill('...', 'username');
-  await page.fill('...', 'password');
-  await page.click('...');
-});
-```
-
-### 4. **Assertion Usage**
-```typescript
-// ✅ GOOD - Meaningful assertions
-await assertions.validateText(successMsg, 'Login Successful');
-await assertions.validateVisible(dashboard);
-
-// ❌ BAD - Vague assertions
-await expect(page).toBeTruthy();
-```
-
-### 5. **Test Organization**
-```typescript
-// ✅ GOOD - Clear test names and tags
-test('@login @functional Login with valid credentials', async () => {});
-
-// ❌ BAD - Vague test names
-test('test1', async () => {});
+export const testSets = {
+  feature: {
+    description: 'Feature suite for smoke-tagged validation',
+    tests: ['@smoke Verify Automation Excercise Page successfully'],
+  },
+  e2e: {
+    description: 'E2E suite for regression-tagged validation',
+    tests: ['@regression Verify Automation Excercise Page successfully'],
+  },
+};
 ```
 
 ---
@@ -407,149 +499,50 @@ test('test1', async () => {});
 
 ### Adding a New Page
 
-1. Create locator file: `ui/src/locators/newPage.locators.ts`
-2. Create page class: `ui/src/pages/newPage.ts`
-3. Extend BasePage and use actions/assertions
-4. Add to fixtures: `ui/src/fixtures/baseFixture.ts` and `fixtures.ts`
-5. Create tests: `test/specs/newPage.spec.ts`
-
-**Example**:
-```typescript
-// 1. ui/src/locators/newPage.locators.ts
-export class NewPageLocators {
-  static readonly ELEMENT = 'selector';
-}
-
-// 2. ui/src/pages/newPage.ts
-import { BasePage } from './basePage';
-export class NewPage extends BasePage {
-  async performAction() {
-    await this.actions.click(NewPageLocators.ELEMENT);
-  }
-}
-
-// 3. Add to fixtures
-newPage: async ({ page }, use) => {
-  await use(new NewPage(page));
-}
+```
+1. src/ui/locators/newPage.locator.ts     → define static locators
+2. src/ui/pages/newPage.page.ts           → create page class
+3. src/ui/fixtures/fixtures.ts            → add fixture entry
+4. test/specs/newPage.spec.ts             → write tests
 ```
 
-### Adding Custom Actions
-
+### Adding a New Action
 ```typescript
 // In actions.ts
-async customAction(locator, param1, param2): Promise<any> {
-  // Implementation
-  logger.info('✓ Custom action performed');
-  return result;
+async doubleClick(locator: Locator | string, message?: string): Promise<void> {
+  const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
+  await element.dblclick();
+  logger.info(this.formatSuccess(message));
 }
 ```
 
-### Adding Custom Assertions
-
+### Adding a New Assertion
 ```typescript
 // In assertions.ts
-async validateCustomState(locator): Promise<void> {
-  try {
-    // Custom validation logic
-    logger.info('✓ Custom assertion passed');
-  } catch (error) {
-    logger.error('✗ Custom assertion failed');
-    throw error;
-  }
-}
-```
-
-### Integrating Data Sources
-
-```typescript
-// Use readCSVtoJSON or readExcelData in tests
-const testData = await readCSVtoJSON('path/to/data.csv');
-for (const data of testData) {
-  // Run test with data
+async validateCount(locator: Locator | string, expected: number, message?: string): Promise<void> {
+  const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
+  await expect(element).toHaveCount(expected);
+  logger.info(this.formatSuccess(message));
 }
 ```
 
 ---
 
-## Configuration & Customization
+## Best Practices
 
-### Environment Configuration (.env)
-The framework uses `.env` file in the project root for environment-specific configuration. Additionally, `test/data/config.properties` is loaded by fixtures for runtime settings.
-
-**File Structure**:
-- `.env` - Your local configuration in project root (git-ignored, NOT committed)
-- `.env.example` - Template for version control (committed)
-- `test/data/config.properties` - Runtime configuration loaded by fixtures
-
-**Setup**:
-```bash
-# 1. Copy template
-cp .env.example .env
-
-# 2. Update with your values
-# BASE_URL=http://localhost:3000
-# WORKERS=4
-# LOG_LEVEL=info
-```
-
-**Example Configuration**:
-```properties
-# Application
-BASE_URL=http://localhost:3000
-
-# Browser
-HEADLESS=true
-WORKERS=4
-
-# Logging
-# Supported values: error, warn, info, verbose, debug, silly
-LOG_LEVEL=info
-
-# Test Data
-TEST_USERNAME=testuser@example.com
-TEST_PASSWORD=TestPassword123!
-```
-
-### Playwright Config Options
-- Browser launch options (chromium, firefox, webkit)
-- Viewport size (1920x1080 default)
-- Timeouts (30s test timeout, 5s expect timeout)
-- Screenshot/video capture (on-failure)
-- Trace capture (retain-on-failure)
-- Reporter settings (HTML, JSON, JUnit, List)
-- Environment variable loading from `.env`
-- Parallel execution with configurable workers
-- Retry configuration
-
-### Environment Variables
-All environment variables are loaded from `.env` file:
-- `BASE_URL` - Application URL to test
-- `WORKERS` - Number of parallel workers
-- `LOG_LEVEL` - Logging level (`error`, `warn`, `info`, `verbose`, `debug`, `silly`)
-- `HEADLESS` - Run in headless mode
-- `RETRIES` - Retry failed tests
-- `ACTION_TIMEOUT` - Action timeout (milliseconds)
-- `NAVIGATION_TIMEOUT` - Navigation timeout (milliseconds)
-- Custom credentials and test data
-
-The logger methods available in this framework are:
-- `logger.error('Error message')`
-- `logger.warn('Warning message')`
-- `logger.info('Info message')`
-- `logger.verbose('Verbose message')`
-- `logger.debug('Debug message')`
-- `logger.silly('Silly message')`
-
-### Test Execution Options
-- Serial/Parallel execution
-- Specific browser selection
-- Tag filtering
-- Debug mode
-- Environment-specific configurations
+1. Always use `Actions` methods — never call Playwright API directly in page objects
+2. Keep all selectors in `*.locator.ts` files — never hardcode in page objects or tests
+3. Use `getLogger('ClassName')` in every file for contextual logging
+4. Use soft assertions when validating multiple things in one test
+5. Always call `throwSoftErrors()` at the end of tests using soft assertions
+6. Control test execution via `execution.config.properties` — not CLI flags
+7. Set `HEADLESS=false` in `.env` for local debugging
+8. Store all test data in `test/data/testData.json`
+9. Never commit `.env` — it is git-ignored
 
 ---
 
-**Framework Version**: 1.0.0  
-**Last Updated**: January 2025  
-**Documentation**: Complete
+**Framework Version**: 1.0.0
+**Last Updated**: 2025
+**CI/CD Provider**: CircleCI
+**Target Application**: https://automationexercise.com

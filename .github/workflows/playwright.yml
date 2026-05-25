@@ -6,14 +6,18 @@ on:
   pull_request:
     branches: [ main, develop ]
   schedule:
-    # Run tests daily at 2 AM UTC
+    # Run regression tests daily at 2 AM UTC
     - cron: '0 2 * * *'
 
 jobs:
+
+  # ============================================================================
+  # JOB 1: Full test suite on push to main/develop (all browsers)
+  # ============================================================================
   test:
-    name: Playwright Tests - ${{ matrix.browser }}
+    name: Playwright Tests - ${{ matrix.browser }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +36,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps ${{ matrix.browser }}
@@ -41,13 +45,16 @@ jobs:
         run: npx playwright test --project=${{ matrix.browser }}
         env:
           CI: true
-          BASE_URL: ${{ secrets.BASE_URL || 'http://localhost:3000' }}
+          HEADLESS: true
+          BASE_URL: ${{ secrets.BASE_URL || 'https://automationexercise.com/' }}
+          LOG_LEVEL: info
+          WORKERS: 4
 
-      - name: Upload test results
+      - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: playwright-report-${{ matrix.os }}-${{ matrix.browser }}
+          name: html-report-${{ matrix.os }}-${{ matrix.browser }}
           path: reports/html-report/
           retention-days: 30
 
@@ -55,8 +62,16 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: playwright-logs-${{ matrix.os }}-${{ matrix.browser }}
+          name: logs-${{ matrix.os }}-${{ matrix.browser }}
           path: reports/logs/
+          retention-days: 30
+
+      - name: Upload JUnit results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: junit-${{ matrix.os }}-${{ matrix.browser }}
+          path: reports/junit.xml
           retention-days: 30
 
       - name: Publish test results
@@ -66,10 +81,13 @@ jobs:
           files: reports/junit.xml
           check_name: Test Results - ${{ matrix.os }} - ${{ matrix.browser }}
 
+  # ============================================================================
+  # JOB 2: Smoke tests on PR (Chromium only - fast feedback)
+  # ============================================================================
   smoke-tests:
-    name: Smoke Tests
+    name: Smoke Tests (PR Validation)
     runs-on: ubuntu-latest
-    needs: test
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
@@ -82,16 +100,18 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      - name: Install Playwright browsers
+      - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
       - name: Run smoke tests
-        run: npx playwright test --grep @smoke
+        run: npx playwright test --grep @smoke --project=chromium
         env:
           CI: true
-          BASE_URL: ${{ secrets.BASE_URL || 'http://localhost:3000' }}
+          HEADLESS: true
+          BASE_URL: ${{ secrets.BASE_URL || 'https://automationexercise.com/' }}
+          LOG_LEVEL: info
 
       - name: Upload smoke test report
         if: always()
@@ -101,18 +121,65 @@ jobs:
           path: reports/html-report/
           retention-days: 7
 
-  notify:
-    name: Test Notification
+  # ============================================================================
+  # JOB 3: Scheduled daily regression tests
+  # ============================================================================
+  regression-tests:
+    name: Daily Regression Tests
     runs-on: ubuntu-latest
-    needs: [test, smoke-tests]
-    if: always()
+    if: github.event_name == 'schedule'
 
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Send Slack notification
-        if: failure()
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Run regression tests
+        run: npx playwright test --grep @regression --workers=4
+        env:
+          CI: true
+          HEADLESS: true
+          BASE_URL: ${{ secrets.BASE_URL || 'https://automationexercise.com/' }}
+          LOG_LEVEL: info
+
+      - name: Upload regression report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: regression-report
+          path: reports/html-report/
+          retention-days: 30
+
+      - name: Upload regression logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: regression-logs
+          path: reports/logs/
+          retention-days: 30
+
+  # ============================================================================
+  # JOB 4: Notify on failure
+  # ============================================================================
+  notify:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: failure()
+
+    steps:
+      - name: Send Slack notification on failure
         uses: slackapi/slack-github-action@v1.24.0
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK }}
@@ -129,8 +196,3 @@ jobs:
                 }
               ]
             }
-
-      - name: Send success notification
-        if: success()
-        run: |
-          echo "✅ All tests passed successfully!"

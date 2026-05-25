@@ -1,0 +1,228 @@
+version: 2.1
+
+# ============================================================================
+# ORBS - Reusable CircleCI packages
+# ============================================================================
+orbs:
+  node: circleci/node@5.2.0
+
+# ============================================================================
+# PARAMETERS - Pipeline-level configurable inputs
+# ============================================================================
+parameters:
+  node-version:
+    type: string
+    default: "18.20.0"
+  workers:
+    type: string
+    default: "4"
+  base-url:
+    type: string
+    default: "https://automationexercise.com/"
+
+# ============================================================================
+# EXECUTORS - Reusable execution environments
+# ============================================================================
+executors:
+  playwright-executor:
+    docker:
+      - image: mcr.microsoft.com/playwright:v1.60.0-noble
+    environment:
+      NODE_VERSION: << pipeline.parameters.node-version >>
+      WORKERS: << pipeline.parameters.workers >>
+      BASE_URL: << pipeline.parameters.base-url >>
+      CI: "true"
+      HEADLESS: "true"
+    resource_class: medium
+
+# ============================================================================
+# COMMANDS - Reusable step sequences
+# ============================================================================
+commands:
+  install-dependencies:
+    description: "Install npm dependencies with cache"
+    steps:
+      - restore_cache:
+          keys:
+            - npm-deps-v1-{{ checksum "package.json" }}
+            - npm-deps-v1-
+      - run:
+          name: Install dependencies
+          command: npm install
+      - save_cache:
+          key: npm-deps-v1-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+
+  store-reports:
+    description: "Store test reports as artifacts"
+    steps:
+      - store_artifacts:
+          path: reports/html-report
+          destination: html-report
+      - store_artifacts:
+          path: reports/logs
+          destination: logs
+      - store_test_results:
+          path: reports/junit.xml
+
+# ============================================================================
+# JOBS
+# ============================================================================
+jobs:
+
+  # --------------------------------------------------------------------------
+  # JOB: Validate Setup
+  # --------------------------------------------------------------------------
+  validate-setup:
+    executor: playwright-executor
+    steps:
+      - checkout
+      - install-dependencies
+      - run:
+          name: Validate framework setup
+          command: node verify-setup.js || true
+
+  # --------------------------------------------------------------------------
+  # JOB: Run tests on Chromium
+  # --------------------------------------------------------------------------
+  test-chromium:
+    executor: playwright-executor
+    steps:
+      - checkout
+      - install-dependencies
+      - run:
+          name: Run Chromium tests
+          command: npx playwright test --project=chromium --workers=<< pipeline.parameters.workers >>
+      - store-reports
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+
+  # --------------------------------------------------------------------------
+  # JOB: Run tests on Firefox
+  # --------------------------------------------------------------------------
+  test-firefox:
+    executor: playwright-executor
+    steps:
+      - checkout
+      - install-dependencies
+      - run:
+          name: Run Firefox tests
+          command: npx playwright test --project=firefox --workers=<< pipeline.parameters.workers >>
+      - store-reports
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+
+  # --------------------------------------------------------------------------
+  # JOB: Run tests on WebKit
+  # --------------------------------------------------------------------------
+  test-webkit:
+    executor: playwright-executor
+    steps:
+      - checkout
+      - install-dependencies
+      - run:
+          name: Run WebKit tests
+          command: npx playwright test --project=webkit --workers=<< pipeline.parameters.workers >>
+      - store-reports
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+
+  # --------------------------------------------------------------------------
+  # JOB: Smoke tests (Chromium only - fast feedback)
+  # --------------------------------------------------------------------------
+  test-smoke:
+    executor: playwright-executor
+    steps:
+      - checkout
+      - install-dependencies
+      - run:
+          name: Run smoke tests
+          command: npx playwright test --grep @smoke --project=chromium --workers=<< pipeline.parameters.workers >>
+      - store-reports
+
+  # --------------------------------------------------------------------------
+  # JOB: Regression tests
+  # --------------------------------------------------------------------------
+  test-regression:
+    executor: playwright-executor
+    steps:
+      - checkout
+      - install-dependencies
+      - run:
+          name: Run regression tests
+          command: npx playwright test --grep @regression --workers=<< pipeline.parameters.workers >>
+      - store-reports
+
+# ============================================================================
+# WORKFLOWS
+# ============================================================================
+workflows:
+
+  # --------------------------------------------------------------------------
+  # WORKFLOW 1: Full pipeline on push to main/develop
+  # --------------------------------------------------------------------------
+  full-pipeline:
+    jobs:
+      - validate-setup:
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+
+      - test-chromium:
+          requires:
+            - validate-setup
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+
+      - test-firefox:
+          requires:
+            - validate-setup
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+
+      - test-webkit:
+          requires:
+            - validate-setup
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+
+  # --------------------------------------------------------------------------
+  # WORKFLOW 2: PR validation - smoke tests only on feature branches
+  # --------------------------------------------------------------------------
+  pr-validation:
+    jobs:
+      - test-smoke:
+          filters:
+            branches:
+              ignore:
+                - main
+                - develop
+
+  # --------------------------------------------------------------------------
+  # WORKFLOW 3: Scheduled daily regression (runs at 2 AM UTC)
+  # --------------------------------------------------------------------------
+  scheduled-regression:
+    triggers:
+      - schedule:
+          cron: "0 2 * * *"
+          filters:
+            branches:
+              only:
+                - main
+    jobs:
+      - test-regression

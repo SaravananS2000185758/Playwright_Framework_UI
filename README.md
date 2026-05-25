@@ -1,62 +1,61 @@
 # Playwright Automation Framework - Hybrid Design Pattern
 
-## 📋 Framework Overview
+## Framework Overview
 
-This is a comprehensive **Playwright Automation Framework** built using **TypeScript** with a **Hybrid Framework** design pattern. It combines the benefits of **Page Object Model (POM)** with **Data-Driven Testing** for maximum scalability, maintainability, and reusability.
+This is a **Playwright Automation Framework** built using **TypeScript** with a **Hybrid Framework** design pattern. It combines **Page Object Model (POM)** with **Data-Driven Testing** for scalability, maintainability, and reusability.
 
 ### Key Features
-- ✅ **Page Object Model (POM)** - Encapsulates UI elements and interactions
-- ✅ **Action Layer** - Centralized reusable action methods
-- ✅ **Assertion Layer** - Hard and soft assertions
-- ✅ **Custom Fixtures** - Pre-configured test fixtures with page objects
-- ✅ **Data-Driven Testing** - CSV and Excel data support
-- ✅ **Winston Logger** - Comprehensive logging with file outputs
-- ✅ **Parallel Execution** - Multi-browser and multi-worker support
-- ✅ **Comprehensive Reporting** - HTML, JSON, and JUnit reports
-- ✅ **Config-Driven Execution** - `test/execution.config.properties` controls enabled suites and tag selection
-- ✅ **Cross-Browser Testing** - Chrome, Firefox, and Safari support
+- **Page Object Model (POM)** - Encapsulates UI elements and interactions
+- **Action Layer** - Centralized reusable action methods
+- **Assertion Layer** - Hard and soft assertions
+- **Custom Fixtures** - Pre-configured test fixtures with page objects and hooks
+- **Data-Driven Testing** - JSON data support via `testData.json`
+- **Winston Logger** - Comprehensive logging with file outputs
+- **Parallel Execution** - Multi-browser and multi-worker support
+- **Comprehensive Reporting** - HTML, JSON, and JUnit reports
+- **Config-Driven Execution** - `test/execution.config.properties` controls enabled suites and tag selection
+- **Cross-Browser Testing** - Chrome, Firefox, and Safari support
+- **CircleCI Integration** - CI/CD pipeline configuration ready
 
 ---
 
-## 📁 Folder Structure
+## Folder Structure
 
 ```
 Playwright_Framework_UI/
 │
-├── ui/
-│   └── src/
+├── .circleci/
+│   └── config.yml                      # CircleCI CI/CD pipeline configuration
+│
+├── .github/
+│   └── workflows/
+│       └── playwright.yml              # GitHub Actions CI/CD
+│
+├── src/
+│   └── ui/
 │       ├── actions/
 │       │   └── actions.ts              # Action methods layer
 │       ├── assertions/
 │       │   └── assertions.ts           # Hard and soft assertions
 │       ├── fixtures/
-│       │   ├── baseFixture.ts          # Custom test fixtures with hooks
-│       │   └── fixtures.ts             # Data-driven test fixtures
+│       │   └── fixtures.ts             # Custom test fixtures with hooks + data loading
 │       ├── locators/
-│       │   ├── login.locators.ts       # Login page locators
-│       │   ├── booking.locators.ts     # Booking page locators
-│       │   ├── retrieveBooking.locators.ts
-│       │   └── automationExcercise.locator.ts
+│       │   └── automationExcercise.locator.ts  # Automation Exercise page locators
 │       ├── pages/
-│       │   ├── basePage.ts             # Base page object
-│       │   ├── loginPage.ts            # Login page object
-│       │   ├── bookingPage.ts          # Booking page object
-│       │   ├── retrieveBookingPage.ts  # Retrieve booking page object
-│       │   └── automationExcercise.page.ts
+│       │   └── automationExcercise.page.ts     # Automation Exercise page object
 │       ├── commonMethods/
-│       │   └── commonMethods.ts        # Reusable workflow methods
+│       │   └── commonMethods.ts        # Reusable navigation and utility methods
 │       └── utils/
 │           ├── logger.ts               # Winston logger setup
-│           └── dataUtils.ts            # CSV/Excel reading utilities
+│           ├── dataUtils.ts            # JSON/CSV/Excel reading utilities
+│           └── executionConfig.ts      # Reads execution.config.properties and builds grep pattern
 │
 ├── test/
 │   ├── data/
-│   │   ├── config.properties           # Environment configuration
-│   │   └── testData.csv                # Test data
-│   └── specs/
-│       ├── login.spec.ts               # Login test suite
-│       ├── booking.spec.ts             # Booking test suite
-│       └── retrieveBooking.spec.ts     # Retrieve booking test suite
+│   │   └── testData.json               # JSON test data for data-driven tests
+│   ├── specs/
+│   │   └── automationExcercise.spec.ts # Automation Exercise test suite
+│   └── execution.config.properties     # Controls which suites/tags are executed
 │
 ├── reports/
 │   ├── html-report/                    # HTML reports
@@ -66,13 +65,8 @@ Playwright_Framework_UI/
 │
 ├── test-results/                       # Playwright test results & traces
 │
-├── .github/
-│   └── workflows/
-│       └── playwright.yml              # GitHub Actions CI/CD
-│
 ├── .env                                # Environment configuration (NOT committed)
 ├── .gitignore                          # Git ignore rules
-├── .gitlab-ci.yml                      # GitLab CI/CD
 ├── .prettierrc                         # Code formatting rules
 ├── azure-pipelines.yml                 # Azure DevOps CI/CD
 ├── playwright.config.ts                # Playwright configuration
@@ -82,67 +76,89 @@ Playwright_Framework_UI/
 ├── verify-setup.js                     # Setup verification script
 ├── README.md                           # This file
 ├── ARCHITECTURE.md                     # Architecture documentation
+├── CIRCLECI.md                         # CircleCI CI/CD documentation
 ├── INSTALLATION.md                     # Installation guide
-├── QUICKSTART.md                       # Quick start guide
-└── GITLAB_CICD.md                      # GitLab CI/CD documentation
+└── QUICKSTART.md                       # Quick start guide
 ```
 
 ---
 
-## 🏗️ Execution Flow Architecture
+## Execution Flow Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │                        Test Execution Flow                        │
 └──────────────────────────────────────────────────────────────────┘
 
-1. SPEC FILE (.spec.ts)
+1. execution.config.properties
+   └─→ Controls which suite/tag is active (feature or e2e)
+
+2. executionConfig.ts
+   └─→ Reads config and builds grep pattern for playwright.config.ts
+
+3. playwright.config.ts
+   └─→ Loads .env, sets headless/headed, workers, timeouts, reporters
+   └─→ Applies grep pattern from executionConfig.ts
+
+4. SPEC FILE (test/specs/*.spec.ts)
    └─→ Entry point of the test
-   
-2. FIXTURES (baseFixture.ts / fixtures.ts)
-   └─→ Custom fixtures provide:
-       • LoginPage instance
-       • BookingPage instance
-       • RetrieveBookingPage instance
-       • CommonMethods instance
-       • testData fixture (CSV data loading)
-       • beforeEach/afterEach hooks
-   
-3. PAGE OBJECTS (*.page.ts)
-   └─→ Page classes (LoginPage, BookingPage, etc.)
+
+5. FIXTURES (src/ui/fixtures/fixtures.ts)
+   └─→ Provides:
+       • automationExcercisePage instance
+       • commonMethods instance
+       • testData fixture (JSON data loading from testData.json)
+       • beforeEach: navigates to BASE_URL, waits for page load
+       • afterEach: clears cookies
+
+6. PAGE OBJECTS (src/ui/pages/*.page.ts)
+   └─→ Encapsulates page-specific workflows
        └─→ Constructor initializes:
            • Actions instance
            • Assertions instance
-   
-4. ACTIONS LAYER (actions.ts)
+           • CommonMethods instance
+
+7. ACTIONS LAYER (src/ui/actions/actions.ts)
    └─→ Reusable UI interaction methods:
-       • click()
-       • fill()
-       • selectDropdown()
-       • getCount()
-       • isVisible()
-       • getAttribute()
-       • etc.
-   
-5. LOCATORS (*.locators.ts)
-   └─→ Centralized element locators:
-       • Selector strings
-       • XPath expressions
-       • Static properties
-   
-6. ASSERTIONS LAYER (assertions.ts)
-   └─→ Validation methods:
-       • Hard Assertions (expect)
-       • Soft Assertions (softExpect)
-       • Custom validation methods
-   
-7. LOGGER (utils/logger.ts)
-   └─→ Winston logger logs:
-       • Console output
-       • File output (all.log, error.log)
-       • Timestamps and context
+       • click(), fill(), selectDropdown()
+       • getText(), getAttribute(), isVisible(), isDisabled()
+       • getCount(), getLength()
+       • hover(), scrollToElement()
+       • navigateTo(), waitForPageLoad()
+       • waitForElement(), waitForElementVisible()
+       • refreshPage(), pressKey(), wait(), sleep()
+
+8. LOCATORS (src/ui/locators/*.locator.ts)
+   └─→ Centralized static element selectors
+
+9. ASSERTIONS LAYER (src/ui/assertions/assertions.ts)
+   └─→ Hard Assertions: validateText(), validateContainsText(),
+       validateVisible(), validateEnabled(), validateHidden(),
+       validateDisabled(), validateAttribute(), validateTitle(),
+       validateURL(), assertEqual()
+   └─→ Soft Assertions: softValidateText(), softValidateVisible(),
+       softValidateAttribute(), softAssertEqual(),
+       getSoftErrors(), clearSoftErrors(), throwSoftErrors()
+
+10. COMMON METHODS (src/ui/commonMethods/commonMethods.ts)
+    └─→ navigateToLogin(), navigateToBooking(), navigateToRetrieveBooking()
+    └─→ refreshPage(), goBack(), getPageTitle(), getCurrentURL()
+    └─→ waitForPageLoad(), closeBrowser(), getPage()
+
+11. LOGGER (src/ui/utils/logger.ts)
+    └─→ Winston logger:
+        • Console output (colorized)
+        • File output → reports/logs/all.log
+        • Error file → reports/logs/error.log
+        • Timestamps and context per module
 
 Flow Diagram:
+┌─────────────────────────────────────────────────────────┐
+│ execution.config.properties → executionConfig.ts        │
+│ → playwright.config.ts (grep pattern + settings)        │
+└──────────────┬──────────────────────────────────────────┘
+               │
+               ▼
 ┌─────────────────────────────────────────────────────────┐
 │ Spec File Test                                          │
 └──────────────┬──────────────────────────────────────────┘
@@ -150,22 +166,22 @@ Flow Diagram:
                ▼
 ┌─────────────────────────────────────────────────────────┐
 │ Fixture (beforeEach)                                    │
-│ - Create page instances                                 │
-│ - Navigate to base URL                                  │
+│ - Navigate to BASE_URL                                  │
+│ - Wait for page load                                    │
+│ - Provide page object instances                         │
+│ - Load testData.json                                    │
 └──────────────┬──────────────────────────────────────────┘
                │
                ▼
 ┌─────────────────────────────────────────────────────────┐
 │ Page Object Methods                                     │
-│ - bookingPage.searchBookings()                          │
-│ - loginPage.login()                                     │
-│ - retrieveBookingPage.searchBooking()                   │
+│ - automationExcercisePage.validateAutomationExcercise.. │
 └──────────────┬──────────────────────────────────────────┘
                │
          ┌─────┴─────┐
          ▼           ▼
     ┌────────┐   ┌─────────────┐
-    │ Actions│   │ Assertions  │
+    │Actions │   │ Assertions  │
     └────────┘   └─────────────┘
          │           │
          ▼           ▼
@@ -177,13 +193,12 @@ Flow Diagram:
 ┌─────────────────────────────────────────────────────────┐
 │ Fixture (afterEach)                                     │
 │ - Clear cookies                                         │
-│ - Cleanup resources                                     │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🚀 How to Run Tests
+## How to Run Tests
 
 ### Prerequisites
 - Node.js v18+ and npm
@@ -194,60 +209,49 @@ Flow Diagram:
 npx playwright test
 ```
 
-> `npx playwright test` uses the settings from `test/execution.config.properties`. With the current values:
-> - `feature.enabled = true`
-> - `feature.tagName = smoke`
-> - `e2e.enabled = false`
-> - `e2e.tagName = regression`
+> Uses settings from `test/execution.config.properties`. Current values:
+> - `feature.enabled = false`
+> - `e2e.enabled = true` → `e2e.tagName = regression`
 >
-> the default run executes only `@smoke` tests.
+> Default run executes only `@regression` tests.
 
 ### 2. Run Tests by Tag
 ```bash
-# Run only smoke tests (current default)
 npx playwright test --grep @smoke
-
-# Run only regression tests after enabling the e2e suite in the config
 npx playwright test --grep @regression
 ```
 
 ### 3. Run Specific Test File
 ```bash
-# Run the current automation exercise spec
 npx playwright test test/specs/automationExcercise.spec.ts
 ```
 
-### 4. Run Tests in Headed Mode (See Browser)
+### 4. Run in Headed Mode (Browser Visible)
 ```bash
 npx playwright test --headed
 ```
+> Or set `HEADLESS=false` in `.env` to always run headed.
 
-### 5. Run Tests in Debug Mode
+### 5. Run in Debug Mode
 ```bash
 npx playwright test --debug
 ```
 
-### 6. Run Tests in Specific Browser
+### 6. Run on Specific Browser
 ```bash
-# Chromium only
 npx playwright test --project=chromium
-
-# Firefox only
 npx playwright test --project=firefox
-
-# Safari only
 npx playwright test --project=webkit
 ```
 
 ### 7. Run Single Test
 ```bash
-npx playwright test test/specs/automationExcercise.spec.ts -g "@smoke Verify Automation Excercise Page successfully"
+npx playwright test test/specs/automationExcercise.spec.ts -g "@smoke Verify Automation Excercise Page successfully-01"
 ```
 
-### 8. Run Tests with Workers
+### 8. Run with Workers
 ```bash
-# Run with 8 workers in parallel
-npx playwright test --workers=8
+npx playwright test --workers=4
 ```
 
 ### 9. Show Test Report
@@ -257,464 +261,298 @@ npx playwright show-report
 
 ---
 
-## 📊 Test Suites (test.sets.ts)
+## Test Suites (test.sets.ts)
 
-The framework exposes two logical suites in `test.sets.ts`:
-
-| Suite | Tags | Purpose |
-|-------|------|---------|
+| Suite | Tag | Description |
+|-------|-----|-------------|
 | **feature** | @smoke | Feature suite for smoke-tagged validation |
 | **e2e** | @regression | E2E suite for regression-tagged validation |
 
-The active suite selection is controlled by `test/execution.config.properties` through `playwright.config.ts`.
-
-### Current default configuration
+### Current execution.config.properties
 ```properties
-feature.enabled = true
+feature.enabled = false
 feature.tagName = smoke
 
-e2e.enabled = false
+e2e.enabled = true
 e2e.tagName = regression
 ```
 
-With these values, `npx playwright test` runs only `@smoke` tests.
-
-### Override examples
-```bash
-# Run only smoke tests using the current feature tag
-npx playwright test --grep "@smoke"
-
-# Run only regression tests after enabling the e2e suite in the config
-npx playwright test --grep "@regression"
-```
+With these values, `npx playwright test` runs only `@regression` tests.
 
 ---
 
-## 📝 Logging & Reporting
+## Logging & Reporting
 
 ### Log Files
-Logs are generated in `reports/logs/` directory:
-- `all.log` - All log entries
-- `error.log` - Error logs only
+Generated in `reports/logs/`:
+- `all.log` - All log entries (max 5MB, 5 files rotation)
+- `error.log` - Error logs only (max 5MB, 5 files rotation)
 
 ### Log Levels
-Configure in `.env` file using `LOG_LEVEL`.
+Set via `LOG_LEVEL` in `.env`:
 
-Supported values:
-- `error`
-- `warn`
-- `info`
-- `verbose`
-- `debug`
-- `silly`
-
-Example:
-```properties
-# Logging
-# Supported values: error, warn, info, verbose, debug, silly
-LOG_LEVEL=info
-```
-
-The logger supports the following methods:
-- `logger.error('Error message')`
-- `logger.warn('Warning message')`
-- `logger.info('Info message')`
-- `logger.verbose('Verbose message')`
-- `logger.debug('Debug message')`
-- `logger.silly('Silly message')`
+| Level | Usage |
+|-------|-------|
+| `error` | `logger.error('...')` |
+| `warn` | `logger.warn('...')` |
+| `info` | `logger.info('...')` |
+| `verbose` | `logger.verbose('...')` |
+| `debug` | `logger.debug('...')` |
+| `silly` | `logger.silly('...')` |
 
 ### Report Types
-After test execution, reports are generated:
-
-1. **HTML Report** - `reports/html-report/index.html`
-   ```bash
-   npx playwright show-report
-   ```
-
-2. **JSON Report** - `reports/test-results.json`
-
-3. **JUnit Report** - `reports/junit.xml`
-
-### View Reports
-```bash
-# Show HTML report
-npx playwright show-report
-
-# Open specific path
-npx playwright show-report reports/html-report
-```
+| Report | Location | Command |
+|--------|----------|---------|
+| HTML | `reports/html-report/index.html` | `npx playwright show-report` |
+| JSON | `reports/test-results.json` | - |
+| JUnit | `reports/junit.xml` | - |
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
-### Environment Setup (.env file)
-
-The framework uses a `.env` file in the project root for environment configuration. Additionally, `test/data/config.properties` is used by fixtures for runtime configuration.
-
-#### Step 1: Create .env File
-Create a `.env` file in the project root with the following configuration:
-
-#### Step 2: Update .env with Your Configuration
-Edit `.env` and update values according to your environment:
+### .env File
 ```properties
-# Application URLs
-BASE_URL=http://localhost:3000
+# Application
+BASE_URL=https://automationexercise.com/
 
-# Browser Configuration
-HEADLESS=true
-VIEWPORT_WIDTH=1920
-VIEWPORT_HEIGHT=1080
-
-# Execution Configuration
-WORKERS=4
-RETRIES=0
-
-# Timeouts (in milliseconds)
-ACTION_TIMEOUT=10000
-NAVIGATION_TIMEOUT=30000
+# Browser
+HEADLESS=false
 
 # Logging
-# Supported values: error, warn, info, verbose, debug, silly
 LOG_LEVEL=info
 
-# Test Data
-TEST_USERNAME=testuser@example.com
-TEST_PASSWORD=TestPassword123!
-TEST_DESTINATION=New York
-TEST_GUESTS=2
-TEST_ROOMS=1
-
-# Optional Integrations
-SLACK_WEBHOOK=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your-email@gmail.com
+# Execution
+WORKERS=4
+RETRIES=0
+ACTION_TIMEOUT=10000
+NAVIGATION_TIMEOUT=30000
 ```
 
-#### Step 3: Environment-Specific Configurations (Optional)
-For different environments, create additional files:
-```bash
-.env              # Default/local configuration (NOT committed)
-.env.staging      # Staging environment
-.env.prod         # Production environment
-```
-
-**Load specific environment:**
-```bash
-# Load staging environment
-npm run test:staging
-
-# Load production environment  
-npm run test:prod
-```
-
-### Playwright Configuration (playwright.config.ts)
-
-The Playwright configuration loads environment variables from `.env`:
-```typescript
-dotenv.config({ path: path.join(__dirname, '.env') });
-
-Key settings:
+### playwright.config.ts Key Settings
 - Viewport: 1920x1080
-- Workers: 4 (parallel execution)
-- Retries: 0
-- Timeout: 30 seconds
+- Workers: from `WORKERS` env var (default 4)
+- Headless: controlled by `HEADLESS` env var (`false` = headed)
 - Screenshots: on-failure
 - Videos: retain-on-failure
-- Trace: on-first-retry
+- Trace: retain-on-failure
+- Grep: built dynamically from `execution.config.properties`
+
+---
+
+## Framework Layers
+
+### Actions Layer (`src/ui/actions/actions.ts`)
+```typescript
+click(locator, message)
+fill(locator, value, message)
+selectDropdown(locator, value, message)
+getCount(locator, message)
+getLength(locator, message)
+isVisible(locator, message)
+isDisabled(locator, message)
+getAttribute(locator, attribute, message)
+getText(locator, message)
+hover(locator, message)
+scrollToElement(locator, message)
+navigateTo(url, message)
+waitForPageLoad(timeout, state, message)
+waitForElement(locator, timeout, message)
+waitForElementVisible(locator, timeout, message)
+refreshPage(message)
+pressKey(key, message)
+wait(milliseconds, message)
+sleep(milliseconds, message)
 ```
 
-### Environment Variables Usage
+### Assertions Layer (`src/ui/assertions/assertions.ts`)
 
-Override environment variables at runtime:
-```bash
-# Set custom base URL (Windows PowerShell)
-$env:BASE_URL="http://your-app.com"
-npx playwright test
+**Hard Assertions** (fail immediately):
+```typescript
+validateText(locator, expectedText, message)
+validateContainsText(locator, expectedText, message)
+validateAttribute(locator, attribute, value, message)
+validateVisible(locator, message)
+validateEnabled(locator, message)
+validateHidden(locator, message)
+validateDisabled(locator, message)
+validateTitle(expectedTitle, message)
+validateURL(expectedURL, message)
+assertEqual(actual, expected, message)
+```
 
-# Set custom base URL (Windows CMD)
-set BASE_URL=http://your-app.com
-npx playwright test
+**Soft Assertions** (collect errors, continue test):
+```typescript
+softValidateText(locator, expectedText, message)
+softValidateVisible(locator, message)
+softValidateAttribute(locator, attribute, value, message)
+softAssertEqual(actual, expected, message)
+getSoftErrors()
+clearSoftErrors()
+throwSoftErrors()
+```
 
-# Run with 8 workers
-$env:WORKERS="8"
-npx playwright test
+### CommonMethods Layer (`src/ui/commonMethods/commonMethods.ts`)
+```typescript
+navigateToLogin()
+navigateToBooking()
+navigateToRetrieveBooking()
+refreshPage()
+goBack()
+getPageTitle()
+getCurrentURL()
+waitForPageLoad(timeout, state, message)
+closeBrowser()
+getPage()
+```
 
-# Enable retries
-$env:RETRIES="2"
-npx playwright test
+### Locators (`src/ui/locators/automationExcercise.locator.ts`)
+```typescript
+AutomationExcerciseLocators.emailAddress   // 'input[data-qa="login-email"]'
+AutomationExcerciseLocators.password       // 'input[data-qa="login-password"]'
+AutomationExcerciseLocators.loginButton    // 'button[data-qa="login-button"]'
+AutomationExcerciseLocators.productsLabel  // 'a[href="/products"]:has-text("Products")'
+```
 
-# Combined
-$env:BASE_URL="http://staging.app.com"; $env:WORKERS="6"; npx playwright test
+### Fixtures (`src/ui/fixtures/fixtures.ts`)
+```typescript
+// Available fixtures in tests:
+automationExcercisePage  // AutomationExcercisePage instance
+commonMethods            // CommonMethods instance
+testData                 // JSON data loaded from test/data/testData.json
+```
+
+### Data Utilities (`src/ui/utils/dataUtils.ts`)
+```typescript
+readJSONData(filePath)                        // Read JSON test data
+readExcelData(filePath, sheetName?)           // Read Excel data
+getTimestamp(format)                          // Get formatted timestamp
+generateUniqueId()                            // Generate unique ID
+retry(fn, retries, delay)                     // Retry async function
+wait(milliseconds)                            // Promise-based wait
+randomDelay(min, max)                         // Random delay
 ```
 
 ---
 
-## 🔍 Framework Layers Explained
+## Code Examples
 
-### 1. **Actions Layer** (`actions.ts`)
-Provides reusable methods for UI interactions:
+### Example 1: Basic Test
 ```typescript
-- click(locator, message)
-- fill(locator, value, message)
-- selectDropdown(locator, value, message)
-- getCount(locator, message)
-- isVisible(locator, message)
-- getAttribute(locator, attribute, message)
-- getText(locator, message)
-- hover(locator, message)
-- navigateTo(url, message)
-- waitForElement(locator, timeout, message)
-```
+import { test } from '../../src/ui/fixtures/fixtures';
+import { getLogger } from '../../src/ui/utils/logger';
 
-### 2. **Assertions Layer** (`assertions.ts`)
-Provides validation methods:
+const logger = getLogger('MySpec');
 
-**Hard Assertions** (Test fails immediately):
-```typescript
-- validateText(locator, expectedText, message)
-- validateContainsText(locator, expectedText, message)
-- validateAttribute(locator, attribute, value, message)
-- validateVisible(locator, message)
-- validateEnabled(locator, message)
-```
-
-**Soft Assertions** (Test continues, errors collected):
-```typescript
-- softValidateText(locator, expectedText, message)
-- softValidateVisible(locator, message)
-- softValidateAttribute(locator, attribute, value, message)
-- getSoftErrors() - Get collected errors
-- throwSoftErrors() - Throw all collected errors
-```
-
-### 3. **Locators Layer** (`*.locators.ts`)
-Centralized element locators:
-```typescript
-export class LoginLocators {
-  static readonly USERNAME_INPUT = 'input[placeholder="Username"]';
-  static readonly PASSWORD_INPUT = 'input[placeholder="Password"]';
-  static readonly LOGIN_BUTTON = 'button:has-text("Login")';
-}
-```
-
-### 4. **Page Objects** (`*.page.ts`)
-Encapsulates page logic:
-```typescript
-export class LoginPage extends BasePage {
-  async login(username: string, password: string): Promise<void> {
-    await this.actions.fill(LoginLocators.USERNAME_INPUT, username);
-    await this.actions.fill(LoginLocators.PASSWORD_INPUT, password);
-    await this.actions.click(LoginLocators.LOGIN_BUTTON);
-  }
-}
-```
-
-### 5. **Fixtures** (`baseFixture.ts`)
-Provides pre-configured test setup:
-```typescript
-test('...', async ({ loginPage, bookingPage, commonMethods }) => {
-  // Use page objects directly
+test.describe('Automation Exercise Page Tests', () => {
+  test('@smoke Verify page loads', async ({ automationExcercisePage }) => {
+    logger.info('Running smoke test');
+    await automationExcercisePage.validateAutomationExcerciseHomePage();
+  });
 });
 ```
 
-### 6. **Utilities** (`utils/`)
-Helper functions:
-- **Logger** - Winston-based logging
-- **Data Utilities** - CSV/Excel reading, timestamps, retry logic
-
----
-
-## 📚 Code Examples
-
-### Example 1: Simple Login Test
+### Example 2: Data-Driven Test
 ```typescript
-import { test } from '../../ui/src/fixtures/fixtures';
-import { getLogger } from '../../ui/src/utils/logger';
-
-const logger = getLogger('LoginSpec');
-
-test('@login @smoke Verify login page loads', async ({ loginPage, commonMethods }) => {
-  logger.info('Test: Verify login page loads successfully');
-  
-  await commonMethods.navigateToLogin();
-  await loginPage.verifyLoginFormVisible();
-  
-  logger.info('✓ Test passed: Login page loaded successfully');
-});
-```
-
-### Example 2: Booking Search with Data Validation
-```typescript
-test('Search and validate hotel details', async ({ bookingPage }) => {
-  await bookingPage.searchBookings('New York', '2024-06-15', '2024-06-20', '2', '1');
-  
-  const hotelName = await bookingPage.getFirstHotelName();
-  const hotelPrice = await bookingPage.getFirstHotelPrice();
-  
-  expect(hotelName).toBeTruthy();
-  expect(hotelPrice).toContain('$');
+test('@regression Login with test data', async ({ automationExcercisePage, testData }) => {
+  const user = testData[0];
+  // testData is auto-loaded from test/data/testData.json
+  logger.info(`Testing with user: ${user.username}`);
+  await automationExcercisePage.validateAutomationExcerciseHomePage();
 });
 ```
 
 ### Example 3: Soft Assertions
 ```typescript
-test('Multiple assertions without failing', async ({ retrieveBookingPage, assertions }) => {
-  // These won't fail immediately
-  await assertions.softValidateText(locator1, 'Expected Text');
-  await assertions.softValidateVisible(locator2);
-  await assertions.softValidateAttribute(locator3, 'class', 'active');
-  
-  // Throw all collected errors at the end
-  assertions.throwSoftErrors();
+test('@smoke Multiple validations', async ({ page }) => {
+  const assertions = new Assertions(page);
+  await assertions.softValidateVisible(locator1, 'Check header');
+  await assertions.softValidateText(locator2, 'Expected', 'Check title');
+  assertions.throwSoftErrors(); // throws all collected errors at end
 });
 ```
 
-### Example 4: Data-Driven Test
+### Example 4: Adding a New Page
 ```typescript
-import { test } from '../../ui/src/fixtures/fixtures';
+// 1. src/ui/locators/newPage.locator.ts
+export class NewPageLocators {
+  static readonly HEADING = 'h1.page-title';
+}
 
-test('@login @functional Login with valid credentials', async ({ loginPage, testData, commonMethods }) => {
-  // testData fixture automatically loads CSV data
-  const loginData = testData[0];
-  
-  await loginPage.login(loginData.username, loginData.password);
-  await commonMethods.waitForPageLoad(30000, 'networkidle', 'Waiting for login navigation');
-  
-  const currentURL = await commonMethods.getCurrentURL();
-  expect(currentURL).not.toContain('/login');
-});
+// 2. src/ui/pages/newPage.page.ts
+export class NewPage {
+  constructor(page: Page) {
+    this.actions = new Actions(page);
+    this.assertions = new Assertions(page);
+  }
+  async verifyHeading() {
+    await this.assertions.validateVisible(NewPageLocators.HEADING);
+  }
+}
+
+// 3. Add to fixtures.ts
+newPage: async ({ page }, use) => {
+  await use(new NewPage(page));
+}
 ```
 
 ---
 
-## 🔧 CI/CD Integration
+## CI/CD Integration
 
-### GitHub Actions Example
-Create `.github/workflows/playwright.yml`:
+### CircleCI (Active)
+Configuration: `.circleci/config.yml`
+Documentation: `CIRCLECI.md`
 
-```yaml
-name: Playwright Tests
+Three workflows:
+| Workflow | Trigger | Jobs |
+|----------|---------|------|
+| `full-pipeline` | Push to `main`/`develop` | validate-setup → chromium + firefox + webkit |
+| `pr-validation` | Feature branch push | smoke tests on Chromium |
+| `scheduled-regression` | Daily 2 AM UTC | @regression tests |
 
-on: [push, pull_request]
+Setup: Connect repo at [app.circleci.com](https://app.circleci.com) and add `BASE_URL` in Project Settings → Environment Variables.
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      
-      - name: Install dependencies
-        run: npm install
-      
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-      
-      - name: Run tests
-        run: npm run test
-      
-      - name: Upload report
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: playwright-report
-          path: reports/html-report/
-          retention-days: 30
-```
+### GitHub Actions
+Configuration: `.github/workflows/playwright.yml`
+- Runs on push/PR to `main`/`develop`
+- Matrix: Ubuntu + Windows × Chromium + Firefox + WebKit
+- Uploads HTML reports and logs as artifacts
 
-### Azure DevOps Example
-Create `azure-pipelines.yml`:
-
-```yaml
-trigger:
-  - main
-
-pool:
-  vmImage: 'ubuntu-latest'
-
-steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: '18.x'
-  
-  - script: npm install
-    displayName: 'Install dependencies'
-  
-  - script: npx playwright install --with-deps
-    displayName: 'Install Playwright'
-  
-  - script: npx playwright test
-    displayName: 'Run tests'
-  
-  - task: PublishTestResults@2
-    condition: always()
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/junit.xml'
-      mergeTestResults: true
-```
+### Azure DevOps
+Configuration: `azure-pipelines.yml`
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
-### Tests timing out
-- Increase timeout in `playwright.config.ts`
-- Check if application is running
-- Verify BASE_URL is correct
-
-### Locators not found
-- Verify CSS/XPath selectors
-- Use Playwright Inspector: `npx playwright test --debug`
-- Check page has loaded: `await page.waitForLoadState('networkidle')`
-
-### Soft assertion errors not showing
-- Call `throwSoftErrors()` at the end of test
-- Check log files in `reports/logs/`
-
-### Reports not generating
-- Ensure `reports/` directory exists
-- Check write permissions
-- Verify `playwright.config.ts` reporter configuration
+| Issue | Solution |
+|-------|----------|
+| Tests timing out | Increase `ACTION_TIMEOUT` / `NAVIGATION_TIMEOUT` in `.env` |
+| Locators not found | Use `npx playwright test --debug` to inspect |
+| Running in headless unexpectedly | Set `HEADLESS=false` in `.env` |
+| Soft assertion errors not showing | Call `throwSoftErrors()` at end of test |
+| Reports not generating | Ensure `reports/` directory exists with write permissions |
+| BASE_URL not set | Add `BASE_URL=...` to `.env` file |
 
 ---
 
-## 📞 Support & Additional Resources
+## Best Practices
 
-- **Playwright Documentation**: https://playwright.dev
-- **TypeScript Documentation**: https://www.typescriptlang.org
-- **Winston Logger**: https://github.com/winstonjs/winston
-
----
-
-## 📝 Best Practices
-
-1. **Keep locators in separate files** - Easier to maintain
-2. **Use meaningful test names** - Describe what test does
-3. **Add tags to tests** - Organize by test type
-4. **Use fixtures** - Avoid creating page objects in tests
-5. **Implement proper waits** - Use `waitForElement` instead of `waitForTimeout`
-6. **Log strategically** - Log important steps and assertions
-7. **Use soft assertions** - For multiple validations
-8. **Organize test data** - CSV/Excel for data-driven tests
-9. **Handle errors gracefully** - Use try-catch where needed
-10. **Review reports regularly** - Monitor test trends
+1. Keep locators in separate `*.locator.ts` files
+2. Use meaningful test names with tags (`@smoke`, `@regression`)
+3. Always use fixtures — never create page objects directly in tests
+4. Use `waitForElement` instead of `waitForTimeout`
+5. Use soft assertions for multiple validations in one test
+6. Log important steps using the logger
+7. Store test data in `test/data/testData.json`
+8. Control suite execution via `test/execution.config.properties`
+9. Never commit `.env` — use `.env` locally only
+10. Use `HEADLESS=false` in `.env` for local debugging
 
 ---
 
-## 📄 License
-
-This framework is provided as-is for automation testing purposes.
-
----
-
-**Framework Version**: 1.0.0  
-**Last Updated**: January 2025  
-**Created by**: QA Automation Team
+**Framework Version**: 1.0.0
+**Last Updated**: 2025
+**CI/CD Provider**: CircleCI
+**Target Application**: https://automationexercise.com
