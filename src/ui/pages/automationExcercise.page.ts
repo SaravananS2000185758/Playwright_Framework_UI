@@ -20,7 +20,7 @@ export class AutomationExcercisePage {
     logger.info('✓ AutomationExcercisePage initialized');
   }
 
-  async validateDHRHomePage(): Promise<void> {
+  async validateAutomationExcerciseHomePage(): Promise<void> {
 
     await this.actions.waitForPageLoad(3000, 'networkidle', 'Waiting for page to load');
     await this.commonMethods.navigateToLogin();

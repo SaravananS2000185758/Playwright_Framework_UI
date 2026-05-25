@@ -13,7 +13,7 @@ This is a comprehensive **Playwright Automation Framework** built using **TypeSc
 - ✅ **Winston Logger** - Comprehensive logging with file outputs
 - ✅ **Parallel Execution** - Multi-browser and multi-worker support
 - ✅ **Comprehensive Reporting** - HTML, JSON, and JUnit reports
-- ✅ **Tag-Based Execution** - Organize tests by tags (smoke, functional, E2E, etc.)
+- ✅ **Config-Driven Execution** - `test/execution.config.properties` controls enabled suites and tag selection
 - ✅ **Cross-Browser Testing** - Chrome, Firefox, and Safari support
 
 ---
@@ -194,37 +194,27 @@ Flow Diagram:
 npx playwright test
 ```
 
+> `npx playwright test` uses the settings from `test/execution.config.properties`. With the current values:
+> - `feature.enabled = true`
+> - `feature.tagName = smoke`
+> - `e2e.enabled = false`
+> - `e2e.tagName = regression`
+>
+> the default run executes only `@smoke` tests.
+
 ### 2. Run Tests by Tag
 ```bash
-# Run only smoke tests
+# Run only smoke tests (current default)
 npx playwright test --grep @smoke
 
-# Run only login tests
-npx playwright test --grep @login
-
-# Run only booking tests
-npx playwright test --grep @booking
-
-# Run only E2E tests
-npx playwright test --grep @booking@functional
-
-# Run functional tests
-npx playwright test --grep @functional
-
-# Run negative tests
-npx playwright test --grep @negative
+# Run only regression tests after enabling the e2e suite in the config
+npx playwright test --grep @regression
 ```
 
 ### 3. Run Specific Test File
 ```bash
-# Run login tests only
-npx playwright test test/specs/login.spec.ts
-
-# Run booking tests only
-npx playwright test test/specs/booking.spec.ts
-
-# Run retrieve booking tests only
-npx playwright test test/specs/retrieveBooking.spec.ts
+# Run the current automation exercise spec
+npx playwright test test/specs/automationExcercise.spec.ts
 ```
 
 ### 4. Run Tests in Headed Mode (See Browser)
@@ -251,7 +241,7 @@ npx playwright test --project=webkit
 
 ### 7. Run Single Test
 ```bash
-npx playwright test test/specs/login.spec.ts -g "Login with valid credentials"
+npx playwright test test/specs/automationExcercise.spec.ts -g "@smoke Verify Automation Excercise Page successfully"
 ```
 
 ### 8. Run Tests with Workers
@@ -269,31 +259,33 @@ npx playwright show-report
 
 ## 📊 Test Suites (test.sets.ts)
 
-The framework includes pre-configured test suites:
+The framework exposes two logical suites in `test.sets.ts`:
 
 | Suite | Tags | Purpose |
 |-------|------|---------|
-| **smoke** | @smoke | Basic smoke tests (E2E flow) |
-| **functional** | @functional | Core functionality tests |
-| **negative** | @negative | Error handling tests |
-| **e2e** | @booking @login @retrieve | End-to-end workflows |
-| **login** | @login | All login tests |
-| **booking** | @booking | All booking tests |
-| **retrieve** | @retrieve | All retrieve booking tests |
+| **feature** | @smoke | Feature suite for smoke-tagged validation |
+| **e2e** | @regression | E2E suite for regression-tagged validation |
 
-### Run Test Set
+The active suite selection is controlled by `test/execution.config.properties` through `playwright.config.ts`.
+
+### Current default configuration
+```properties
+feature.enabled = true
+feature.tagName = smoke
+
+e2e.enabled = false
+e2e.tagName = regression
+```
+
+With these values, `npx playwright test` runs only `@smoke` tests.
+
+### Override examples
 ```bash
-# Run smoke tests
+# Run only smoke tests using the current feature tag
 npx playwright test --grep "@smoke"
 
-# Run functional tests
-npx playwright test --grep "@functional"
-
-# Run login tests
-npx playwright test --grep "@login"
-
-# Run booking tests
-npx playwright test --grep "@booking"
+# Run only regression tests after enabling the e2e suite in the config
+npx playwright test --grep "@regression"
 ```
 
 ---

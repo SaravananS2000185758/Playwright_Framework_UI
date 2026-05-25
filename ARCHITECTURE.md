@@ -20,6 +20,31 @@ This Playwright Automation Framework implements a **Hybrid Framework** design co
 - **Data-Driven Approach** - CSV/Excel integration
 - **Custom Fixtures** - Pre-configured test setup
 - **Modular Architecture** - Separated concerns
+- **Config-Driven Test Selection** - `test/execution.config.properties` controls which suites and tags are executed
+
+---
+
+## Configuration-Driven Execution
+
+The execution flow is driven by `test/execution.config.properties` and `src/ui/utils/executionConfig.ts`.
+
+`playwright.config.ts` loads a grep pattern from `buildGrepPattern()`, which reads the configuration file and converts enabled suites into Playwright tags.
+
+### Current configuration
+```properties
+feature.enabled = true
+feature.tagName = smoke
+
+e2e.enabled = false
+e2e.tagName = regression
+```
+
+With these values, the default run executes only tests tagged with `@smoke`.
+
+### Current suite mapping
+- `test.sets.ts` exposes the logical `feature` and `e2e` suites.
+- `feature` maps to the `@smoke` tag by default.
+- `e2e` maps to the `@regression` tag by default.
 
 ---
 

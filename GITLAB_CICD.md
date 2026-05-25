@@ -37,7 +37,7 @@ This document provides comprehensive guidance on setting up and using the GitLab
 │  └─ test:webkit ──────────► Run tests on Safari                │
 │                                                                  │
 │  STAGE 3: SMOKE                                                 │
-│  └─ smoke:tests ──────────► Run smoke tests (manual)           │
+│  └─ smoke:tests ──────────► Run configured feature suite        │
 │                                                                  │
 │  STAGE 4: REPORT                                                │
 │  ├─ report:html ──────────► Generate HTML reports              │
@@ -106,7 +106,7 @@ For daily automated tests:
 2. Click **New schedule**
 3. Configure:
    - **Interval pattern**: `0 2 * * *` (Daily at 2 AM UTC)
-   - **Description**: "Daily Regression Tests"
+   - **Description**: "Daily Configured Suite Tests"
    - **Active**: Toggle ON
 
 ---
@@ -184,10 +184,10 @@ npx playwright install --with-deps chromium firefox webkit
 
 ### Stage 2: TEST
 
-**Purpose:** Execute tests in parallel on all browsers
+**Purpose:** Execute the configured suite selection in parallel on all browsers
 
 #### `test:chromium`
-- Tests on Chromium browser
+- Tests on Chromium browser using the configured suite selection
 - Uses 4 parallel workers (configurable)
 - **Triggers:** Pushes to main/develop, merge requests, schedules
 - **Artifacts:** HTML, JUnit, JSON reports
@@ -198,7 +198,7 @@ npx playwright test --project=chromium --workers=4
 ```
 
 #### `test:firefox`
-- Tests on Firefox browser
+- Tests on Firefox browser using the configured suite selection
 - Same parallelization as Chromium
 - **Triggers:** Same as Chromium
 - **Artifacts:** HTML, JUnit, JSON reports
@@ -209,7 +209,7 @@ npx playwright test --project=firefox --workers=4
 ```
 
 #### `test:webkit`
-- Tests on WebKit browser
+- Tests on WebKit browser using the configured suite selection
 - Same parallelization as Chromium
 - **Triggers:** Same as Chromium
 - **Artifacts:** HTML, JUnit, JSON reports
@@ -223,10 +223,11 @@ npx playwright test --project=webkit --workers=4
 
 ### Stage 3: SMOKE
 
-**Purpose:** Run critical functionality tests (manual trigger)
+**Purpose:** Run the current feature suite selection (manual trigger)
 
 #### `smoke:tests`
-- Runs only tests tagged with `@smoke`
+- Runs the feature suite selection from `test/execution.config.properties`
+- Defaults to tests tagged with `@smoke`
 - Manual trigger via GitLab UI
 - Faster feedback loop
 - **Triggers:** Merge requests (manual only)
@@ -235,6 +236,8 @@ npx playwright test --project=webkit --workers=4
 # Manual equivalent
 npx playwright test --grep @smoke --workers=4
 ```
+
+If you want the pipeline to execute the e2e suite instead, update `test/execution.config.properties` and adjust the pipeline command accordingly.
 
 ---
 
@@ -307,18 +310,31 @@ env:
 Tests run automatically on:
 
 1. **Push to main/develop**
-   - Full test suite on all browsers
+   - The configured suite selection on all browsers
    - Reports published automatically
 
 2. **Merge Request**
-   - Quick smoke tests on Chromium
-   - Full tests on all browsers
+   - The configured suite selection on Chromium
    - Reports linked in MR UI
 
 3. **Scheduled Pipeline**
-   - Daily regression tests at 2 AM UTC
-   - Full test suite execution
+   - The configured suite selection at 2 AM UTC
    - Email notifications on failure
+
+### Config-Driven Execution
+
+The pipeline uses the same execution settings as local runs from `test/execution.config.properties`.
+
+Current defaults:
+```properties
+feature.enabled = true
+feature.tagName = smoke
+
+e2e.enabled = false
+e2e.tagName = regression
+```
+
+With these values, the default pipeline behavior resolves to `@smoke` only. To change the executed suite, update the config file and rerun the pipeline.
 
 ### Manual Test Execution
 
@@ -331,20 +347,18 @@ Trigger tests manually via GitLab UI:
 
 ### Running Specific Tests
 
-Modify `.gitlab-ci.yml` to run specific tests:
+Modify `test/execution.config.properties` to control the suite selection and rerun the pipeline:
 
 ```yaml
-# Run only @login tests
 script:
-  - npx playwright test --grep @login
+  - npx playwright test
+```
 
-# Run specific test file
-script:
-  - npx playwright test test/specs/login.spec.ts
+If you want to override the config temporarily, you can also run a tag-specific command manually:
 
-# Run in headed mode
+```yaml
 script:
-  - npx playwright test --headed
+  - npx playwright test --grep @smoke
 ```
 
 ---

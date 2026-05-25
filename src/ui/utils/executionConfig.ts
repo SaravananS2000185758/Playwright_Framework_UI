@@ -33,12 +33,16 @@ export function loadExecutionConfig(): ExecutionConfig {
   };
 }
 
+function normalizeTag(tagName: string): string {
+  return tagName.startsWith('@') ? tagName : `@${tagName}`;
+}
+
 export function buildGrepPattern(): string | undefined {
   const config = loadExecutionConfig();
   const tags: string[] = [];
 
-  if (config.feature.enabled) tags.push(`@feature-${config.feature.tagName}`);
-  if (config.e2e.enabled) tags.push(`@e2e-${config.e2e.tagName}`);
+  if (config.feature.enabled) tags.push(normalizeTag(config.feature.tagName));
+  if (config.e2e.enabled) tags.push(normalizeTag(config.e2e.tagName));
 
   if (tags.length === 0) return undefined;
   // If both suites use the same tag, deduplicate
