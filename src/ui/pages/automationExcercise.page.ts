@@ -12,6 +12,7 @@ export class AutomationExcercisePage {
   private actions: Actions;
   private assertions: Assertions;
   private commonMethods: CommonMethods;
+
   constructor(page: Page) {
     this.page = page;
     this.actions = new Actions(page);
@@ -29,5 +30,9 @@ export class AutomationExcercisePage {
     await this.actions.click(AutomationExcerciseLocators.loginButton, 'Clicking on LoginIn button');
     await this.actions.waitForElementVisible(AutomationExcerciseLocators.productsLabel, 5000, 'Waiting for products label to be visible');
     logger.warn('✓ Successfully validated the Automation Excercise Home Page - Testing Warn log');
+    logger.info('✓ Successfully validated the Automation Excercise Home Page - Testing Info log');
+    logger.error('✓ Successfully validated the Automation Excercise Home Page - Testing Error log');
+    logger.verbose('✓ Successfully validated the Automation Excercise Home Page - Testing Verbose log');
+    logger.silly('✓ Successfully validated the Automation Excercise Home Page - Testing Silly log');
   }
 }
