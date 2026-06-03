@@ -48,7 +48,8 @@ export default defineConfig({
     acceptDownloads: true,
   },
 
-  retries,
+  retries:
+    process.env.RETRIES ?? process.env.CI ? 2 : retries,
 
   projects: [
     {
