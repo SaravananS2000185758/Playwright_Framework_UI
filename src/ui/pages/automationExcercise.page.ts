@@ -4,6 +4,7 @@ import { Assertions } from '../assertions/assertions';
 import { CommonMethods } from '../commonMethods/commonMethods';
 import { getLogger } from '../utils/logger';
 import { AutomationExcerciseLocators } from '../locators/automationExcercise.locator';
+import { InbuildLocators } from '../locators/inbuildLocators';
 
 const logger = getLogger('AutomationExcercisePage');
 
@@ -12,27 +13,44 @@ export class AutomationExcercisePage {
   private actions: Actions;
   private assertions: Assertions;
   private commonMethods: CommonMethods;
+  public inbuildLocators: InbuildLocators;
 
   constructor(page: Page) {
     this.page = page;
     this.actions = new Actions(page);
     this.assertions = new Assertions(page);
     this.commonMethods = new CommonMethods(page);
-    logger.info('✓ AutomationExcercisePage initialized');
+    this.inbuildLocators = new InbuildLocators(page);
   }
 
-  async validateAutomationExcerciseHomePage(): Promise<void> {
+  async validateAutomationExcerciseHomePage(data: { username: string; password: string }): Promise<void> {
 
     await this.actions.waitForPageLoad(3000, 'networkidle', 'Waiting for page to load');
-    await this.commonMethods.navigateToLogin();
-    await this.actions.fill(AutomationExcerciseLocators.emailAddress, 'SaravananS23@hexaware.com', 'Enter the username');
-    await this.actions.fill(AutomationExcerciseLocators.password, 'Br@v02026!@#', 'Enter the password');
-    await this.actions.click(AutomationExcerciseLocators.loginButton, 'Clicking on LoginIn button');
-    await this.actions.waitForElementVisible(AutomationExcerciseLocators.productsLabel, 5000, 'Waiting for products label to be visible');
-    logger.warn('✓ Successfully validated the Automation Excercise Home Page - Testing Warn log');
-    logger.info('✓ Successfully validated the Automation Excercise Home Page - Testing Info log');
-    logger.error('✓ Successfully validated the Automation Excercise Home Page - Testing Error log');
-    logger.verbose('✓ Successfully validated the Automation Excercise Home Page - Testing Verbose log');
-    logger.silly('✓ Successfully validated the Automation Excercise Home Page - Testing Silly log');
+    await this.actions.click(AutomationExcerciseLocators.signuplink,'Clicking on Sign Up link');
+    await this.actions.fill(AutomationExcerciseLocators.emailAddress,data.username,'Enter the username');
+    await this.actions.fill(AutomationExcerciseLocators.password,data.password,'Enter the password');
+    await this.actions.click(AutomationExcerciseLocators.loginButton,'Clicking on Login In button');
+    await this.actions.waitForElementVisible(AutomationExcerciseLocators.productsLabel,3000,'Waiting for products label to be visible');
+    await this.actions.click(AutomationExcerciseLocators.addToCartButton(1),'Clicking on Add to Cart button for product with ID 1');
+    await this.actions.waitForElementVisible(AutomationExcerciseLocators.cartAdded,3000,'Waiting for cart added message to be visible');
+    await this.actions.click(AutomationExcerciseLocators.continueShoppingButton,'Clicking on Continue Shopping button');
+    await this.actions.click(AutomationExcerciseLocators.addToCartButton(2),'Clicking on Add to Cart button for product with ID 1');
+    await this.actions.waitForElementVisible(AutomationExcerciseLocators.cartAdded,3000,'Waiting for cart added message to be visible');
+    await this.actions.click(AutomationExcerciseLocators.continueShoppingButton,'Clicking on Continue Shopping button');
+    await this.actions.isInvisible(AutomationExcerciseLocators.continueShoppingButton,'Verifying that cart added message is invisible');
+    await this.actions.click(AutomationExcerciseLocators.cartButton,'Clicking on Cart button to view the cart');
+    await this.actions.waitForElementVisible(AutomationExcerciseLocators.proceedToCheckoutButton,3000,'Waiting for Proceed to Checkout button to be visible');
+    if(await this.actions.getCount(AutomationExcerciseLocators.itemList,'Getting the count of items in the cart') > 0){
+      logger.info('Items are present in the cart');
+    } else if(await this.actions.getCount(AutomationExcerciseLocators.itemList, 'Getting the count of items in the cart') == 0){  
+      logger.error('No items are present in the cart');
+    }
+    for(let i = 1; i <= await this.actions.getCount(AutomationExcerciseLocators.itemList, 'Getting the count of items in the cart'); i++){
+      await this.actions.click(AutomationExcerciseLocators.cartItemsDeleteButton(i),'Clicking on Delete button for item at index '+i);
+      await this.actions.waitForElementVisible(AutomationExcerciseLocators.itemList,3000,'Waiting for item list to be visible after deletion');
+    }
+    if(await this.actions.isVisible(AutomationExcerciseLocators.cartEmptyMessage,'Verifying if cart empty message is visible')){
+      logger.info('Cart is empty after deleting all items');
+    }
   }
 }

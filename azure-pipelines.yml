@@ -182,24 +182,21 @@ stages:
       - job: PublishHTMLReport
         displayName: Publish HTML Reports
         steps:
-          - task: PublishBuildArtifacts@1
+          - task: PublishPipelineArtifact@1
             inputs:
-              pathToPublish: '$(Build.SourcesDirectory)/reports/html-report'
-              artifactName: 'Playwright-HTML-Report'
-              publishLocation: 'Container'
+              targetPath: '$(Build.SourcesDirectory)/reports/html-report'
+              artifact: 'Playwright-HTML-Report'
             displayName: Publish HTML report
 
-          - task: PublishBuildArtifacts@1
+          - task: PublishPipelineArtifact@1
             inputs:
-              pathToPublish: '$(Build.SourcesDirectory)/reports/logs'
-              artifactName: 'Playwright-Logs'
-              publishLocation: 'Container'
+              targetPath: '$(Build.SourcesDirectory)/reports/logs'
+              artifact: 'Playwright-Logs'
             displayName: Publish test logs
 
-          - task: PublishBuildArtifacts@1
+          - task: PublishPipelineArtifact@1
             inputs:
-              pathToPublish: '$(Build.SourcesDirectory)/reports/test-results.json'
-              artifactName: 'Playwright-JSON-Report'
-              publishLocation: 'Container'
+              targetPath: '$(Build.SourcesDirectory)/reports/test-results.json'
+              artifact: 'Playwright-JSON-Report'
             displayName: Publish JSON report
             condition: always()

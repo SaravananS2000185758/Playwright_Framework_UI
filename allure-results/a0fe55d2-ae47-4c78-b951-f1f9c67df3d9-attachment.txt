@@ -1,0 +1,5 @@
+[2026-06-24 11:26:07] [info] ================== TEST STARTED ==================
+[2026-06-24 11:26:07] [info] ✓ Navigating to base URL: https://automationexercise.com/
+[2026-06-24 11:26:40] [info] ================== TEST ENDED ==================
+[2026-06-24 11:26:40] [info] ✓ Cookies cleared
+[2026-06-24 11:26:40] [info] ✓ CommonMethods fixture teardown

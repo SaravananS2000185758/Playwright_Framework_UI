@@ -1,0 +1,10 @@
+[2026-06-24 11:53:58] [info] ================== TEST STARTED ==================
+[2026-06-24 11:53:58] [info] ✓ Navigating to base URL: https://automationexercise.com/
+[2026-06-24 11:54:06] [info] ✓ Waiting for initial page load
+[2026-06-24 11:54:06] [info] ✓ Successfully read JSON file: C:\Users\2000185758\Playwright_Automation\Playwright_Framework_UI\test\data\testData.json (2 rows)
+[2026-06-24 11:54:08] [info] ✓ Waiting for page to load
+[2026-06-24 11:54:18] [error] ✗ Failed to fill element with value: Saravanans.mca14@gmail.com: Enter the username
+[2026-06-24 11:54:19] [info] ================== TEST ENDED ==================
+[2026-06-24 11:54:19] [info] ✓ Cookies cleared
+[2026-06-24 11:54:19] [info] ✓ AutomationExcercisePage fixture teardown
+[2026-06-24 11:54:19] [info] ✓ CommonMethods fixture teardown

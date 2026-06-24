@@ -1,0 +1,17 @@
+[2026-06-24 14:49:50] [info] ================== TEST STARTED ==================
+[2026-06-24 14:49:50] [info] ✓ Navigating to base URL: https://automationexercise.com/
+[2026-06-24 14:49:56] [info] ✓ Waiting for initial page load
+[2026-06-24 14:49:56] [info] ✓ Successfully read JSON file: C:\Users\2000185758\Playwright_Automation\Playwright_Framework_UI\test\data\testData.json (1 rows)
+[2026-06-24 14:49:57] [info] ✓ Waiting for page to load
+[2026-06-24 14:49:58] [info] ✓ Clicking on Sign Up link
+[2026-06-24 14:49:58] [info] ✓ Enter the username with value: Saravanans.mca14@gmail.com
+[2026-06-24 14:49:58] [info] ✓ Enter the password with value: Sann@2026!@#
+[2026-06-24 14:50:01] [info] ✓ Clicking on Login In button
+[2026-06-24 14:50:01] [info] ✓ Waiting for products label to be visible
+[2026-06-24 14:50:01] [info] ✓ Clicking on Add to Cart button for product with ID 1
+[2026-06-24 14:50:03] [info] ✓ Waiting for cart added message to be visible
+[2026-06-24 14:50:03] [info] ✓ Clicking on Continue Shopping button
+[2026-06-24 14:50:03] [info] ================== TEST ENDED ==================
+[2026-06-24 14:50:03] [info] ✓ Cookies cleared
+[2026-06-24 14:50:03] [info] ✓ AutomationExcercisePage fixture teardown
+[2026-06-24 14:50:03] [info] ✓ CommonMethods fixture teardown

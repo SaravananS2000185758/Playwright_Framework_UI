@@ -95,6 +95,22 @@ export class Actions {
     }
   }
 
+  async isInvisible(locator: Locator | string, message?: string): Promise<boolean> {
+    try {
+      const element = typeof locator === 'string' ? this.page.locator(locator) : locator;
+      const invisible = await element.isHidden();
+      logger.info(
+        message?.trim()
+          ? `✓ ${message}: Element is ${invisible ? 'invisible' : 'visible'}`
+          : `✓ Element is ${invisible ? 'invisible' : 'visible'}`
+      );
+      return invisible;
+    } catch (error) {
+      logger.error(`✗ Failed to check element invisibility${this.formatError(message)}`);
+      throw error;
+    }
+  }
+
   async getAttribute(locator: Locator | string, attribute: string, message?: string): Promise<string | null> {
     try {
       const element = typeof locator === 'string' ? this.page.locator(locator) : locator;

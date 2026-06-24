@@ -19,22 +19,9 @@ export class CommonMethods {
     return baseURL.replace(/\/$/, '');
   }
 
-  private async navigate(path: string): Promise<void> {
-    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-    await this.actions.navigateTo(`${this.getBaseURL()}${normalizedPath}`, `Navigated to ${normalizedPath}`);
-  }
-
   async navigateToLogin(): Promise<void> {
     const baseURL = this.getBaseURL();
     await this.actions.navigateTo(`${baseURL}/login`, 'Navigated to login page');
-  }
-
-  async navigateToBooking(): Promise<void> {
-    await this.navigate('/booking');
-  }
-
-  async navigateToRetrieveBooking(): Promise<void> {
-    await this.navigate('/retrieve-booking');
   }
 
   async refreshPage(): Promise<void> {
@@ -68,7 +55,4 @@ export class CommonMethods {
     logger.info('✓ Browser closed');
   }
 
-  getPage(): Page {
-    return this.page;
-  }
 }

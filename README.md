@@ -15,7 +15,6 @@ This is a **Playwright Automation Framework** built using **TypeScript** with a 
 - **Comprehensive Reporting** - HTML, JSON, and JUnit reports
 - **Config-Driven Execution** - `test/execution.config.properties` controls enabled suites and tag selection
 - **Cross-Browser Testing** - Chrome, Firefox, and Safari support
-- **CircleCI Integration** - CI/CD pipeline configuration ready
 
 ---
 
@@ -23,9 +22,6 @@ This is a **Playwright Automation Framework** built using **TypeScript** with a 
 
 ```
 Playwright_Framework_UI/
-│
-├── .circleci/
-│   └── config.yml                      # CircleCI CI/CD pipeline configuration
 │
 ├── .github/
 │   └── workflows/
@@ -53,8 +49,9 @@ Playwright_Framework_UI/
 ├── test/
 │   ├── data/
 │   │   └── testData.json               # JSON test data for data-driven tests
-│   ├── specs/
-│   │   └── automationExcercise.spec.ts # Automation Exercise test suite
+│   └── ui/
+│       └── specs/
+│           └── automationExcercise.spec.ts # Automation Exercise test suite
 │   └── execution.config.properties     # Controls which suites/tags are executed
 │
 ├── reports/
@@ -76,7 +73,6 @@ Playwright_Framework_UI/
 ├── verify-setup.js                     # Setup verification script
 ├── README.md                           # This file
 ├── ARCHITECTURE.md                     # Architecture documentation
-├── CIRCLECI.md                         # CircleCI CI/CD documentation
 ├── INSTALLATION.md                     # Installation guide
 └── QUICKSTART.md                       # Quick start guide
 ```
@@ -223,7 +219,7 @@ npx playwright test --grep @regression
 
 ### 3. Run Specific Test File
 ```bash
-npx playwright test test/specs/automationExcercise.spec.ts
+npx playwright test test/ui/specs/automationExcercise.spec.ts
 ```
 
 ### 4. Run in Headed Mode (Browser Visible)
@@ -246,7 +242,7 @@ npx playwright test --project=webkit
 
 ### 7. Run Single Test
 ```bash
-npx playwright test test/specs/automationExcercise.spec.ts -g "@smoke Verify Automation Excercise Page successfully-01"
+npx playwright test test/ui/specs/automationExcercise.spec.ts -g "@smoke Verify Automation Excercise Page successfully-01"
 ```
 
 ### 8. Run with Workers
@@ -500,19 +496,6 @@ newPage: async ({ page }, use) => {
 
 ## CI/CD Integration
 
-### CircleCI (Active)
-Configuration: `.circleci/config.yml`
-Documentation: `CIRCLECI.md`
-
-Three workflows:
-| Workflow | Trigger | Jobs |
-|----------|---------|------|
-| `full-pipeline` | Push to `main`/`develop` | validate-setup → chromium + firefox + webkit |
-| `pr-validation` | Feature branch push | smoke tests on Chromium |
-| `scheduled-regression` | Daily 2 AM UTC | @regression tests |
-
-Setup: Connect repo at [app.circleci.com](https://app.circleci.com) and add `BASE_URL` in Project Settings → Environment Variables.
-
 ### GitHub Actions
 Configuration: `.github/workflows/playwright.yml`
 - Runs on push/PR to `main`/`develop`
@@ -554,5 +537,5 @@ Configuration: `azure-pipelines.yml`
 
 **Framework Version**: 1.0.0
 **Last Updated**: 2025
-**CI/CD Provider**: CircleCI
+**CI/CD Provider**: GitHub Actions / Azure DevOps
 **Target Application**: https://automationexercise.com

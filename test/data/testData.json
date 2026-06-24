@@ -1,52 +1,6 @@
 [
   {
-    "username": "testuser1@example.com",
-    "password": "ValidPassword123!",
-    "destination": "New York",
-    "checkInDate": "2024-06-15",
-    "checkOutDate": "2024-06-20",
-    "guests": 2,
-    "rooms": 1,
-    "expectedResult": "Success"
-  },
-  {
-    "username": "testuser2@example.com",
-    "password": "ValidPassword456!",
-    "destination": "Los Angeles",
-    "checkInDate": "2024-07-01",
-    "checkOutDate": "2024-07-05",
-    "guests": 3,
-    "rooms": 2,
-    "expectedResult": "Success"
-  },
-  {
-    "username": "testuser3@example.com",
-    "password": "InvalidPassword",
-    "destination": "Las Vegas",
-    "checkInDate": "2024-08-10",
-    "checkOutDate": "2024-08-12",
-    "guests": 4,
-    "rooms": 2,
-    "expectedResult": "Failed"
-  },
-  {
-    "username": "testuser4@example.com",
-    "password": "ValidPassword789!",
-    "destination": "Miami",
-    "checkInDate": "2024-09-01",
-    "checkOutDate": "2024-09-07",
-    "guests": 2,
-    "rooms": 1,
-    "expectedResult": "Success"
-  },
-  {
-    "username": "testuser5@example.com",
-    "password": "ValidPassword000!",
-    "destination": "Chicago",
-    "checkInDate": "2024-10-05",
-    "checkOutDate": "2024-10-10",
-    "guests": 5,
-    "rooms": 3,
-    "expectedResult": "Success"
+    "username": "Saravanans.mca14@gmail.com",
+    "password": "Sann@2026!@#"
   }
 ]

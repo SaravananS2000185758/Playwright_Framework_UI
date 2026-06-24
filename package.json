@@ -23,7 +23,12 @@
     "test:parallel": "playwright test --workers=4",
     "build": "tsc",
     "clean": "rm -rf dist reports/html-report reports/logs reports/test-output",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "allure:clean": "rmdir /s /q reports\\allure-results 2>nul & rmdir /s /q reports\\allure-report 2>nul",
+    "allure:generate": "allure generate reports/allure-results --clean -o reports/allure-report",
+    "allure:open": "allure open reports/allure-report",
+    "allure:report": "npm run allure:generate && npm run allure:open",
+    "test:allure": "npm run allure:clean && npx playwright test && npm run allure:report"
   },
   "repository": {
     "type": "git",
@@ -39,6 +44,7 @@
   "homepage": "https://github.com/SaravananS2000185758/Playwright_Framework_UI#readme",
   "dependencies": {
     "@playwright/test": "^1.60.0",
+    "allure": "^3.13.0",
     "cross-env": "^10.1.0",
     "csv-parser": "^3.2.1",
     "dotenv": "^17.4.2",
@@ -46,5 +52,8 @@
     "typescript": "^6.0.3",
     "winston": "^3.19.0",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "allure-playwright": "^3.10.1"
   }
 }

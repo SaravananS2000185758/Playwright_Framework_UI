@@ -1,0 +1,22 @@
+[2026-06-24 15:17:06] [info] ================== TEST STARTED ==================
+[2026-06-24 15:17:06] [info] ✓ Navigating to base URL: https://automationexercise.com/
+[2026-06-24 15:17:13] [info] ✓ Waiting for initial page load
+[2026-06-24 15:17:13] [info] ✓ Successfully read JSON file: C:\Users\2000185758\Playwright_Automation\Playwright_Framework_UI\test\data\testData.json (1 rows)
+[2026-06-24 15:17:16] [info] ✓ Waiting for page to load
+[2026-06-24 15:17:17] [info] ✓ Clicking on Sign Up link
+[2026-06-24 15:17:17] [info] ✓ Enter the username with value: Saravanans.mca14@gmail.com
+[2026-06-24 15:17:17] [info] ✓ Enter the password with value: Sann@2026!@#
+[2026-06-24 15:17:19] [info] ✓ Clicking on Login In button
+[2026-06-24 15:17:19] [info] ✓ Waiting for products label to be visible
+[2026-06-24 15:17:19] [info] ✓ Clicking on Add to Cart button for product with ID 1
+[2026-06-24 15:17:21] [info] ✓ Waiting for cart added message to be visible
+[2026-06-24 15:17:21] [info] ✓ Clicking on Continue Shopping button
+[2026-06-24 15:17:21] [info] ✓ Verifying that cart added message is invisible: Element is invisible
+[2026-06-24 15:17:22] [info] ✓ Clicking on Cart button to view the cart
+[2026-06-24 15:17:22] [info] ✓ Waiting for Proceed to Checkout button to be visible
+[2026-06-24 15:17:22] [info] ✓ Getting the count of items in the cart: 1 elements found
+[2026-06-24 15:17:22] [info] Items are present in the cart
+[2026-06-24 15:17:22] [info] ================== TEST ENDED ==================
+[2026-06-24 15:17:22] [info] ✓ Cookies cleared
+[2026-06-24 15:17:22] [info] ✓ AutomationExcercisePage fixture teardown
+[2026-06-24 15:17:22] [info] ✓ CommonMethods fixture teardown
