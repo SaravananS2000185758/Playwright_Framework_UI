@@ -1,0 +1,9 @@
+[2026-06-24 19:51:17] [info] ================== TEST STARTED ==================
+[2026-06-24 19:51:17] [info] ✓ Navigating to base URL: https://automationexercise.com/
+[2026-06-24 19:51:24] [info] ✓ Waiting for initial page load
+[2026-06-24 19:51:24] [info] ✓ Successfully read JSON file: C:\Users\2000185758\Playwright_Automation\Playwright_Framework_UI\test\data\testData.json (1 rows)
+[2026-06-24 19:51:27] [error] ✗ Page did not load within 3000ms: Waiting for page to load
+[2026-06-24 19:51:28] [info] ================== TEST ENDED ==================
+[2026-06-24 19:51:28] [info] ✓ Cookies cleared
+[2026-06-24 19:51:28] [info] ✓ AutomationExcercisePage fixture teardown
+[2026-06-24 19:51:28] [info] ✓ CommonMethods fixture teardown

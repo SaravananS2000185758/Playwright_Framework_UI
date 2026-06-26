@@ -1,0 +1,30 @@
+[2026-06-24 19:50:48] [info] ================== TEST STARTED ==================
+[2026-06-24 19:50:48] [info] ✓ Navigating to base URL: https://automationexercise.com/
+[2026-06-24 19:50:51] [info] ✓ Waiting for initial page load
+[2026-06-24 19:50:51] [info] ✓ Successfully read JSON file: C:\Users\2000185758\Playwright_Automation\Playwright_Framework_UI\test\data\testData.json (1 rows)
+[2026-06-24 19:50:54] [info] ✓ Waiting for page to load
+[2026-06-24 19:50:54] [info] ✓ Clicking on Sign Up link
+[2026-06-24 19:50:55] [info] ✓ Enter the username with value: Saravanans.mca14@gmail.com
+[2026-06-24 19:50:55] [info] ✓ Enter the password with value: Sann@2026!@#
+[2026-06-24 19:50:57] [info] ✓ Clicking on Login In button
+[2026-06-24 19:50:57] [info] ✓ Waiting for products label to be visible
+[2026-06-24 19:50:58] [info] ✓ Clicking on Add to Cart button for product with ID 1
+[2026-06-24 19:50:58] [info] ✓ Waiting for cart added message to be visible
+[2026-06-24 19:50:59] [info] ✓ Clicking on Continue Shopping button
+[2026-06-24 19:51:04] [info] ✓ Clicking on Add to Cart button for product with ID 1
+[2026-06-24 19:51:05] [info] ✓ Waiting for cart added message to be visible
+[2026-06-24 19:51:06] [info] ✓ Clicking on Continue Shopping button
+[2026-06-24 19:51:06] [info] ✓ Verifying that cart added message is invisible: Element is invisible
+[2026-06-24 19:51:06] [info] ✓ Clicking on Cart button to view the cart
+[2026-06-24 19:51:07] [info] ✓ Waiting for Proceed to Checkout button to be visible
+[2026-06-24 19:51:07] [info] ✓ Getting the count of items in the cart: 1 elements found
+[2026-06-24 19:51:07] [info] Items are present in the cart
+[2026-06-24 19:51:07] [info] ✓ Getting the count of items in the cart: 1 elements found
+[2026-06-24 19:51:07] [info] ✓ Clicking on Delete button for item at index 1
+[2026-06-24 19:51:07] [info] ✓ Waiting for item list to be visible after deletion
+[2026-06-24 19:51:07] [info] ✓ Getting the count of items in the cart: 1 elements found
+[2026-06-24 19:51:07] [info] ✓ Verifying if cart empty message is visible: Element is not visible
+[2026-06-24 19:51:07] [info] ================== TEST ENDED ==================
+[2026-06-24 19:51:07] [info] ✓ Cookies cleared
+[2026-06-24 19:51:07] [info] ✓ AutomationExcercisePage fixture teardown
+[2026-06-24 19:51:07] [info] ✓ CommonMethods fixture teardown

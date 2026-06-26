@@ -16,7 +16,7 @@ schedules:
     branches:
       include:
         - main
-    always: false
+    always: 'false'
 
 pool:
   vmImage: 'ubuntu-latest'
